@@ -1,0 +1,85 @@
+version: "3.9"
+
+networks:
+  network:
+    external: false
+
+volumes:
+  db_data:
+    driver: local
+  server_data:
+    driver: local
+
+services:
+  db:
+    image: mysql
+    restart: unless-stopped
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - network
+    expose:
+      - "3306"
+    environment:
+      - MYSQL_AUTO_UPGRADE=yes
+      - MYSQL_ROOT_PASSWORD=${DATABASE_ROOT_PASSWORD:-uuKpu7bTbz3iewuJhUTChhJkg4UHHPgH}
+      - MYSQL_DATABASE=${DATABASE_NAME:-portal}
+      - MYSQL_USER=${DATABASE_USER:-portal}
+      - MYSQL_PASSWORD=${DATABASE_PASSWORD:-uuKpu7bTbz3iewuJhUTChhJkg4UHHPgH}
+    
+    #entrypoint: mysqld --skip-grant-tables --innodb-force-recovery=6 --user=mysql
+    #entrypoint: mysqld --skip-grant-tables --user=mysql
+      
+  db-phpmyadmin:
+    image: phpmyadmin
+    restart: unless-stopped
+    depends_on:
+      - db
+    networks:
+      - network
+    ports:
+      - "${PHPMYADMIN_PORT:-8081}:80"
+    environment:
+      - PMA_HOST=db
+      - PMA_PORT=3306
+      - PMA_ABSOLUTE_URI=${PHPMYADMIN_SUB_HOSTNAME}${BASE_URL}/
+      - UPLOAD_LIMIT=50M
+  
+  portal-backend:
+    image: podium-backend
+    restart: unless-stopped
+    depends_on:
+      - db
+    networks:
+      - network
+    volumes:
+      - server_data:/data
+    ports:
+      - "${BACKEND_PORT:-8080}:${SERVER_PORT:-80}"
+    environment:
+      - DEBUG_PATHS=true
+      - DATABASE_HOST=db
+      - DATABASE_PORT=3306
+      - DATABASE_USER=${DATABASE_USER:-portal}
+      - DATABASE_DATABASE=${DATABASE_NAME:-portal}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-uuKpu7bTbz3iewuJhUTChhJkg4UHHPgH}
+      - DATABASE_DO_AUTOMIGRATE=true
+      - DATABASE_DEBUG=true
+      - DATABASE_DO_INSERT=true
+
+      - SERVER_HOSTNAME=${API_SUB_HOSTNAME}${BASE_URL}
+
+      - SERVER_DELIVER_FRONT_END=true
+      - SERVER_FRONT_END_PATH=/data/frontend
+      - SERVER_FRONTEND_HOSTNAME=${FRONTEND_SUB_HOSTNAME}${BASE_URL}
+
+      - SERVER_DELIVER_ADMIN_FRONT_END=true
+      - SERVER_ADMIN_FRONT_END_PATH=/data/admin_frontend
+      - SERVER_ADMIN_FRONTEND_HOSTNAME=${ADMIN_FRONTEND_SUB_HOSTNAME}${BASE_URL}
+
+      - SERVER_UPLOAD_FILEPATH=/data/upload
+      - SERVER_TABLE_CONFIG_PATH=/data/tableconfig
+      - SERVER_WITH_SSL=${SERVER_SSL:-false} # true if you have an ssl certificate
+      - SERVER_INTERNAL_PORT=${SERVER_PORT:-80}
+      - SERVER_METRICS_ENABLED=${METRICS_ENABLED:-false} # true for prometheus metrics export
+      - SERVER_METRICS_HOSTNAME=${METRICS_HOSTNAME}
