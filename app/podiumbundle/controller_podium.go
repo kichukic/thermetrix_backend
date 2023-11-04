@@ -1152,6 +1152,9 @@ func (c *PodiumController) GetPracticeDevicesHandler(w http.ResponseWriter, r *h
 	}
 }
 
+
+
+
 // this is my arenaa  .. . . . . . .. . . . . . . . . . . . .
 
 // my code  kic . . . ...  . . . .
@@ -1172,62 +1175,17 @@ func (c *PodiumController) hello(w http.ResponseWriter, r *http.Request) {
     }
 }
  
+
+// mail send function  . . . . . . . .  . . . .
+ 
+
 type EmailRequest struct {
     To      string `json:"to"`
     Subject string `json:"subject"`
     Body    string `json:"body"`
     Attachments []string `json:"attachments"`
-	PhoneNumber string `json:"phone_number"`
 }
  
-
-
-// mail send function  . . . . . . . .  .
- 
-// func (c *PodiumController) SendMail1(w http.ResponseWriter, r *http.Request) {
-//     var reqBody EmailRequest
- 
-//     from := "apps@symblcrowd.de"
-//     // to :=  "kishor.th@alcodex.com"
-//     // cc := []string{"kichukic@gmail.com"}
-//     // bcc := []string{"kichukic@gmail.com"}
-//     //subject := "Test Email"
-//     //body := "This is a test email."
-//     //files := []string{"attachment.txt"}
- 
-//     errs := json.NewDecoder(r.Body).Decode(&reqBody)
-//     if errs != nil {
-//         http.Error(w, errs.Error(), http.StatusBadRequest)
-//         return
-//     }
- 
-	
-
-//     config := core.EmailConfig{
-//         SMTPHost:           "smtp.ionos.co.uk",
-//         SMTPPort:           587,
-//         SMTPUsername:       "info@podium.care",
-//         SMTPPassword:       "probably+All+Junk_#1",
-//         InsecureSkipVerify: true,
-//         ServerName:         "smtp.ionos.co.uk",
-//     }
-    
-//     fmt.Println(reqBody.To)
-//     err := core.SendMail1(from, reqBody.To, reqBody.Subject, reqBody.Body,reqBody.Attachments, config)
-//     if err != nil {
-//         http.Error(w, err.Error(), http.StatusInternalServerError)
-//         return
-//     }
-//     response := reqBody.Subject
-//     w.Header().Set("Content-Type", "text/plain")
-//     w.WriteHeader(http.StatusOK)
-//     _, err = w.Write([]byte(response))
-//     if err != nil {
-//         http.Error(w, err.Error(), http.StatusInternalServerError)
-//         return
-//     }
-// }
-
 
 
 func (c *PodiumController) SendMail1(w http.ResponseWriter, r *http.Request) {
@@ -1238,14 +1196,12 @@ func (c *PodiumController) SendMail1(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-	
-
     // Access other form fields
     to := r.FormValue("to")
     subject := r.FormValue("subject")
     body := r.FormValue("body")
-	phoneNumber := r.FormValue("phone_number")
-	fmt.Println("the phone number > >  > > > > ",phoneNumber)
+	patient_username := r.FormValue("patient_username")
+	fmt.Println("the phone number > >  > > > > ",patient_username)
     // Access file attachments
     fileHeaders := r.MultipartForm.File["attachments"]
     if len(fileHeaders) == 0 {
@@ -1255,7 +1211,6 @@ func (c *PodiumController) SendMail1(w http.ResponseWriter, r *http.Request) {
 
     // Handle the attachments
     attachmentDir := "/Users/ShyamBoban/Downloads/Xamarin Code/thermetrix_backend/PodiumFiles" // Set the directory where you want to save the attachments
-
     // Create the directory if it doesn't exist
     err = os.MkdirAll(attachmentDir, os.ModePerm)
     if err != nil {
@@ -1267,7 +1222,7 @@ func (c *PodiumController) SendMail1(w http.ResponseWriter, r *http.Request) {
     attachmentPaths := []string{}
     // Iterate through each attachment and save with the original filename
     for _, fileHeader := range fileHeaders {
-        attachmentFileName := filepath.Join(attachmentDir,phoneNumber+"_"+fileHeader.Filename)
+        attachmentFileName := filepath.Join(attachmentDir,patient_username+"_"+fileHeader.Filename)
 		if _, err := os.Stat(attachmentFileName); err == nil {
 			count := 1
 			for {
@@ -1275,7 +1230,7 @@ func (c *PodiumController) SendMail1(w http.ResponseWriter, r *http.Request) {
 				extension := filepath.Ext(originalFilename)
 				baseName := originalFilename[:len(originalFilename)-len(extension)]
 				newFilename := fmt.Sprintf("%s (%d)%s", baseName, count, extension)
-				attachmentFileName = filepath.Join(attachmentDir, phoneNumber+"_"+newFilename)
+				attachmentFileName = filepath.Join(attachmentDir, patient_username+"_"+newFilename)
 				_, err := os.Stat(attachmentFileName)
 				if err != nil {
 					break
@@ -1283,9 +1238,6 @@ func (c *PodiumController) SendMail1(w http.ResponseWriter, r *http.Request) {
 				count++
 			}
 		}
-
-
-	
 
         // Open the attachment file
         attachmentFile, err := fileHeader.Open()
@@ -1350,9 +1302,10 @@ func (c *PodiumController) SendMail1(w http.ResponseWriter, r *http.Request) {
 
 
 
-
-
 // end of kikc code .. . . . . . . . . .. . . . . >>>>>>>>>
+
+
+
 
 func (c *PodiumController) SavePracticeHandler(w http.ResponseWriter, r *http.Request) {
 	practice := Practice{}
