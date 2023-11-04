@@ -1177,6 +1177,7 @@ type EmailRequest struct {
     Subject string `json:"subject"`
     Body    string `json:"body"`
     Attachments []string `json:"attachments"`
+	PhoneNumber string `json:"phone_number"`
 }
  
 
@@ -1237,11 +1238,14 @@ func (c *PodiumController) SendMail1(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+	
+
     // Access other form fields
     to := r.FormValue("to")
     subject := r.FormValue("subject")
     body := r.FormValue("body")
-
+	phoneNumber := r.FormValue("phone_number")
+	fmt.Println("the phone number > >  > > > > ",phoneNumber)
     // Access file attachments
     fileHeaders := r.MultipartForm.File["attachments"]
     if len(fileHeaders) == 0 {
@@ -1261,10 +1265,27 @@ func (c *PodiumController) SendMail1(w http.ResponseWriter, r *http.Request) {
 
     // Create a slice to store attachment file paths
     attachmentPaths := []string{}
-
     // Iterate through each attachment and save with the original filename
     for _, fileHeader := range fileHeaders {
-        attachmentFileName := filepath.Join(attachmentDir, fileHeader.Filename)
+        attachmentFileName := filepath.Join(attachmentDir,phoneNumber+"_"+fileHeader.Filename)
+		if _, err := os.Stat(attachmentFileName); err == nil {
+			count := 1
+			for {
+				originalFilename := fileHeader.Filename 
+				extension := filepath.Ext(originalFilename)
+				baseName := originalFilename[:len(originalFilename)-len(extension)]
+				newFilename := fmt.Sprintf("%s (%d)%s", baseName, count, extension)
+				attachmentFileName = filepath.Join(attachmentDir, phoneNumber+"_"+newFilename)
+				_, err := os.Stat(attachmentFileName)
+				if err != nil {
+					break
+				}
+				count++
+			}
+		}
+
+
+	
 
         // Open the attachment file
         attachmentFile, err := fileHeader.Open()
