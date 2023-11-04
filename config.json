@@ -1,0 +1,37 @@
+{
+    "database": {
+        "host": "localhost",
+        "database": "podium",
+        "user": "root",
+        "server": "myserver",
+        "password": "Root@123",
+        "port": 3306,
+        "do_auto_migrate": true,
+        "do_insert": false,
+        "delete_data": true,
+        "users_to_keep": ["user1", "user2"],
+        "debug": false,
+        "init_set_is_ten_mins_apart": true
+    },
+    "server": {
+        "hostname": "localhost",
+        "frontend_hostname": "localhost",
+        "admin_frontend_hostname": "localhost",
+        "internal_port": 4001,
+        "external_port": 80,
+        "path": "/api",
+        "update_path": "/update",
+        "with_ssl": false,
+        "ssl_cert_file": "/path/to/certfile.pem",
+        "ssl_key_file": "/path/to/keyfile.pem",
+        "table_config_path": "/path/to/config",
+        "upload_filepath": "/path/to/uploads",
+        "deliver_front_end":false,
+        "front_end_path": "/path/to/frontend",
+        "deliver_admin_front_end": false,
+        "admin_front_end_path": "/path/to/admin-frontend",
+        "custom_name": "MyApp",
+        "customer_server_key": "myserverkey",
+        "tmp_path": "/tmp"
+    }
+}
