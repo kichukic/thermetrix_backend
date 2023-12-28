@@ -1,0 +1,12 @@
+{
+  "apps": [
+    {
+      "name": "your-go-app",
+      "script": "go",
+      "args": ["run", "main.go"],
+      "instances": 1,
+      "exec_mode": "fork"
+    }
+  ]
+}
+

@@ -3,17 +3,16 @@ package podiumbundle
 import (
 	"errors"
 	"fmt"
-
+	"net"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"path/filepath"
-	//	"gotools/tools"
 	"io"
 	"log"
 	"mime/multipart"
 	"net/http"
 	"net/url"
-	
+	"encoding/json"
 	"os"
 	"sort"
 	"strconv"
@@ -21,7 +20,6 @@ import (
 	"thermetrix_backend/app/core"
 	web3socket "thermetrix_backend/app/websocket"
 	"time"
-
 	tools "github.com/kirillDanshin/nulltime"
 )
 
@@ -31,10 +29,11 @@ type PodiumController struct {
 	ormDB *gorm.DB
 }
 
+
 // NewPodiumController instance
 func NewPodiumController(ormDB *gorm.DB, users *map[string]core.User) *PodiumController {
 
-	c := &PodiumController{
+	c := &PodiumController{	
 		Controller: core.Controller{Users: users},
 		//hm:         hm,
 		ormDB: ormDB,
@@ -49,6 +48,7 @@ func NewPodiumController(ormDB *gorm.DB, users *map[string]core.User) *PodiumCon
 		ormDB.AutoMigrate(&Practice{}, &PracticeDevice{}, &PracticeContract{}, &PracticeDoctor{})
 		ormDB.AutoMigrate(&DoctorDevice{}, &PatientDevice{}, &DeviceStatus{})
 		ormDB.AutoMigrate(&DeviceSystemVersionType{}, &DeviceSystemVersion{})
+		ormDB.AutoMigrate(&PatientImages{})
 
 		c.insertRiskDefinitions()
 		c.insertAppointmentStatusDefs()
@@ -1210,7 +1210,7 @@ func (c *PodiumController) SendMail1(w http.ResponseWriter, r *http.Request) {
     }
 
     // Handle the attachments
-    attachmentDir := "/Users/ShyamBoban/Downloads/Xamarin Code/thermetrix_backend/PodiumFiles" // Set the directory where you want to save the attachments
+    attachmentDir := "/root/hijack/thermetrix_backend/PodiumFiles" // Set the directory where you want to save the attachments
     // Create the directory if it doesn't exist
     err = os.MkdirAll(attachmentDir, os.ModePerm)
     if err != nil {
@@ -1267,13 +1267,13 @@ func (c *PodiumController) SendMail1(w http.ResponseWriter, r *http.Request) {
     }
 
     // Continue with the email sending logic
-    from := "apps@symblcrowd.de"
+    from := "info@podium.care"
     config := core.EmailConfig{
         SMTPHost:           "smtp.ionos.co.uk",
         SMTPPort:           587,
         SMTPUsername:       "info@podium.care",
         SMTPPassword:       "probably+All+Junk_#1",
-        InsecureSkipVerify: true,
+        InsecureSkipVerify: false,
         ServerName:         "smtp.ionos.co.uk",
     }
 
@@ -1300,6 +1300,174 @@ func (c *PodiumController) SendMail1(w http.ResponseWriter, r *http.Request) {
     }
 }
 
+
+//save images for patient  code //
+
+func (c *PodiumController) SaveImagesForPatient(w http.ResponseWriter, r *http.Request) {
+	// Parse form data
+	err := r.ParseMultipartForm(10 << 20) // 10 MB is the maximum form size
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Retrieve patient ID from form data
+	patientID := r.FormValue("patient_id")
+
+	// Access image files from form data
+	fileHeaders := r.MultipartForm.File["images"]
+	if len(fileHeaders) != 2 {
+		http.Error(w, "Please provide exactly 2 image files", http.StatusBadRequest)
+		return
+	}
+
+	// Directory to save images
+	imageDir := "/home/hijack/Documents/thermetrix_backend/patients_files" // Replace this with your desired directory
+
+	// Slice to store image paths
+	var imagePaths []string
+
+	// Iterate through each image and save it
+	for _, fileHeader := range fileHeaders {
+		// Open the uploaded file
+		uploadedFile, err := fileHeader.Open()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer uploadedFile.Close()
+
+		// Create the file path for saving
+		imageFileName := filepath.Join(imageDir, fileHeader.Filename)
+
+		// Create the image file
+		imageFile, err := os.Create(imageFileName)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer imageFile.Close()
+
+		// Copy the image data to the file
+		_, err = io.Copy(imageFile, uploadedFile)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Append the image path to the slice
+		imagePaths = append(imagePaths, imageFileName)
+	}
+	// Save image paths to the database
+  if err := c.savePatientImagesToDB(patientID, imagePaths); err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+
+	// Return success response if everything is saved successfully
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Images saved successfully"))
+}
+
+
+func (c *PodiumController) savePatientImagesToDB(patientID string, imagePaths []string) error {
+	// Ensure you have an active database connection (ormDB) before calling this function
+
+	// Iterate through imagePaths and insert records into the PatientImages table
+	for _, imagePath := range imagePaths {
+		// Insert each image path and patient ID into the database
+		if err := c.ormDB.Create(&PatientImages{
+			PatientID: patientID,
+			ImagePath: imagePath,
+		}).Error; err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+
+//fetch patient pdf 
+
+func (c *PodiumController) getPatientImagesFromDB(w http.ResponseWriter, r *http.Request) {
+    // Extract the patient ID from the request URL
+    params := mux.Vars(r)
+    patientID := params["patientId"]
+    
+    // Get the base URL
+    baseURL := getBaseURL()
+
+    // Call the function to fetch patient images based on the patient ID
+    patientImages, err := c.fetchPatientImagesFromDB(patientID)
+    if err != nil {
+        http.Error(w, "Failed to fetch patient images", http.StatusInternalServerError)
+        return
+    }
+
+    // Convert the patient images to the desired response format
+    response := make([]PatientImage, len(patientImages))
+    for i, image := range patientImages {
+        // Concatenate the base URL with the image path
+        imageURL := baseURL + image.ImagePath
+        response[i] = PatientImage{ImagePath: imageURL}
+    }
+
+    // Encode the response as JSON
+    jsonData, err := json.Marshal(response)
+    if err != nil {
+        http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+        return
+    }
+
+    // Set the appropriate Content-Type header
+    w.Header().Set("Content-Type", "application/json")
+
+    // Write the JSON response to the client
+    _, err = w.Write(jsonData)
+    if err != nil {
+        // Handle the error
+        return
+    }
+}
+
+func (c *PodiumController) fetchPatientImagesFromDB(patientID string) ([]PatientImage, error) {
+    var patientImages []PatientImage
+
+
+    // Fetch the patient images from the database based on patientID
+    if err := c.ormDB.Where("patient_id = ?", patientID).Find(&patientImages).Error; err != nil {
+        return nil, err
+    }
+    return patientImages, nil
+}
+
+
+func getBaseURL() string {
+    // Get the machine's IP address dynamically
+    addrs, err := net.InterfaceAddrs()
+    if err != nil {
+        // Handle the error, e.g., log the error and return a default value
+        log.Println("Failed to fetch machine's IP address:", err)
+        return "http://localhost:4001"
+    }
+
+    var machineIP string
+    for _, addr := range addrs {
+        ipnet, ok := addr.(*net.IPNet)
+        if ok && !ipnet.IP.IsLoopback() && ipnet.IP.To4() != nil {
+            machineIP = ipnet.IP.String()
+            break
+        }
+    }
+
+    // Create the base URL with the machine's IP address and static port 4001
+    baseURL := "http://" + machineIP + ":4001"
+
+    // Return the base URL
+    return baseURL
+}
 
 
 // end of kikc code .. . . . . . . . . .. . . . . >>>>>>>>>
@@ -1332,7 +1500,6 @@ func (c *PodiumController) SavePracticeHandler(w http.ResponseWriter, r *http.Re
 			return
 		}
 	}
-
 	c.SendJSON(w, &practice, http.StatusOK)
 }
 

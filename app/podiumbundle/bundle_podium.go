@@ -131,13 +131,19 @@ func NewPodiumBundle(ormDB *gorm.DB, users *map[string]core.User) core.Bundle {
 		core.Route{Method: http.MethodGet, Path: "/measurements/blue", Handler: hc.GetMeasurementsWithStatusBlueHandler},
 		core.Route{Method: http.MethodGet, Path: "/measurements/redblue", Handler: hc.GetMeasurementsWithStatusRedBlueHandler},
 		core.Route{Method: http.MethodGet, Path: "/measurements/patient/{patientId:[0-9]+}", Handler: hc.GetMeasurementsForPatientHandler},
-		core.Route{Method: http.MethodGet, Path: "/measurements/{measurementId:[0-9]+}", Handler: hc.GetMeasurementHandler},
 
+
+
+
+		core.Route{Method: http.MethodGet, Path: "/measurements/{measurementId:[0-9]+}", Handler: hc.GetMeasurementHandler},
 		// Deprecated for admin frontend
 		core.Route{Method: http.MethodGet, Path: "/measurements/table-config", Handler: hc.GetMeasurementsTableConfigHandler},
-
 		//DONE
 		core.Route{Method: http.MethodPost, Path: "/measurements", Handler: hc.RetrieveMeasurementHandler},
+
+
+
+
 		core.Route{Method: http.MethodDelete, Path: "/measurements/{measurementId:[0-9]+}", Handler: hc.DeleteMeasurementHandler},
 
 		//END DONE
@@ -209,8 +215,10 @@ func NewPodiumBundle(ormDB *gorm.DB, users *map[string]core.User) core.Bundle {
 		core.Route{Method: http.MethodGet, Path: "/practices/{practiceId:[0-9]+}/patients", Handler: hc.GetPracticePatientsHandler},
 		core.Route{Method: http.MethodGet, Path: "/practices/{practiceId:[0-9]+}/devices", Handler: hc.GetPracticeDevicesHandler},
 		core.Route{Method: http.MethodPost, Path: "/practices", Handler: hc.SavePracticeHandler},
-		core.Route{Method: http.MethodGet, Path: "/helloworld", Handler: hc.hello},
+
 		core.Route{Method: http.MethodPost, Path: "/sendmail", Handler: hc.SendMail1},
+		core.Route{Method: http.MethodPost, Path: "/patientImages", Handler: hc.SaveImagesForPatient},
+		core.Route{Method: http.MethodGet, Path: "/patientImages/{patientId}", Handler: hc.getPatientImagesFromDB},
 
 		
 

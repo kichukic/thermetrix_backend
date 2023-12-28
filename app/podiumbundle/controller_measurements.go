@@ -2240,7 +2240,7 @@ func (c *PodiumController) RetrieveMeasurementHandler(w http.ResponseWriter, r *
 		questionnaire := PatientQuestionnaire{}
 		c.ormDB.Set("gorm:auto_preload", true).Where("measurement_id = ? AND patient_id = ?", measurementDB.ID, patient.ID).First(&questionnaire)
 		measurementDB.Questionnaire = &questionnaire
-
+			
 		if c.isPractice(user) {
 			dailyQuestionnaire := PatientQuestionnaire{}
 			c.ormDB.Debug().Set("gorm:auto_preload", true).Where("measurement_id = 0").Where("patient_id = ?", measurementDB.PatientId).Where("DATE(questionnaire_date) = DATE(?)", measurementDB.MeasurementDate).Where("id IN (SELECT pqq.patient_questionnaire_id FROM patient_questionnaire_questions pqq LEFT JOIN question_templates qt ON pqq.template_question_id = qt.id WHERE pqq.answer_id = 0 AND qt.recurring_rule IN ('DAILY', 'WEEKLY', 'MONTHLY'))").Order("id desc").First(&dailyQuestionnaire)
@@ -3145,6 +3145,7 @@ func DateEqual(date1, date2 time.Time) bool {
 }
 
 func (c *PodiumController) ExportMeasurementHandler(w http.ResponseWriter, r *http.Request) {
+	println("ExportMeasurementHandler", r.URL.Path)
 	ok := false
 	var user *core.User
 	if ok, user = c.GetUser(w, r); !ok {

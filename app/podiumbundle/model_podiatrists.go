@@ -355,11 +355,18 @@ type Measurement struct {
 }
 type Measurements []Measurement
 
+
 type MeasurementFavorite struct {
 	core.Model
 	MeasurementId uint `json:"-"`
 	UserId        uint `json:"user_id"`
 }
+
+// type PatientImages struct {
+//     PatientID string
+//     Images    []string
+// }
+
 
 type MeasurementDoctorRisk struct {
 	core.Model

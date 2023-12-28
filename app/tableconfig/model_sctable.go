@@ -9,3 +9,11 @@ type TableConfigUserSetting struct {
 	TableHeaderDisplayConfigData string `json:"table_header_display_config_data" gorm:"type:LONGTEXT"`
 }
 type TableConfigUserSettings []TableConfigUserSetting
+
+
+// type PatientImages struct {
+// 	ID         uint   // Primary key ID field
+// 	PatientID  string // Patient ID field
+// 	ImagePath  string // File path of the image
+
+// }
