@@ -1904,7 +1904,6 @@ func (c *PodiumController) GetMeasurementFileHandler(w http.ResponseWriter, r *h
 	} else if user.UserType == 0 {
 		c.ormDB.Set("gorm:auto_preload", true).Unscoped().First(&measurement, measurementId)
 	}
-
 	if measurement.ID > 0 {
 		// measurement wurde gefunden, User ist berechtigt es zu sehen
 		for _, file := range measurement.MeasurementFiles {
@@ -1918,7 +1917,6 @@ func (c *PodiumController) GetMeasurementFileHandler(w http.ResponseWriter, r *h
 			}
 		}
 	}
-
 	c.HandleErrorWithStatus(errors.New("File not found"), w, http.StatusNotFound)
 }
 

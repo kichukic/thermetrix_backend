@@ -219,11 +219,11 @@ func NewPodiumBundle(ormDB *gorm.DB, users *map[string]core.User) core.Bundle {
 		core.Route{Method: http.MethodPost, Path: "/sendmail", Handler: hc.SendMail1},
 		core.Route{Method: http.MethodPost, Path: "/patientImages", Handler: hc.SaveImagesForPatient},
 		core.Route{Method: http.MethodGet, Path: "/patientImages/{patientId}", Handler: hc.getPatientImagesFromDB},
-
+		core.Route{Method: http.MethodGet, Path: "/ScanHistory", Handler: hc.ScanHistory},
+		core.Route{Method: http.MethodGet, Path: "/serve-image/{filepath}", Handler: hc.serveImageHandler},
 		
 
 		
-
 		//core.Route{Method: http.MethodGet, Path: "/mail/test", Handler: hc.TestMailHandler},
 		//core.Route{Method: http.MethodPost, Path: "/practice/accounts", Handler: hc.GetPractice},
 

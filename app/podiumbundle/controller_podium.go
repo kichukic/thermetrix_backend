@@ -3,17 +3,18 @@ package podiumbundle
 import (
 	"errors"
 	"fmt"
-	"net"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"path/filepath"
 	"io"
 	"log"
+	"encoding/json"
 	"mime/multipart"
 	"net/http"
 	"net/url"
-	"encoding/json"
 	"os"
+	"path"
+	"mime"
 	"sort"
 	"strconv"
 	"strings"
@@ -1304,88 +1305,95 @@ func (c *PodiumController) SendMail1(w http.ResponseWriter, r *http.Request) {
 //save images for patient  code //
 
 func (c *PodiumController) SaveImagesForPatient(w http.ResponseWriter, r *http.Request) {
-	// Parse form data
-	err := r.ParseMultipartForm(10 << 20) // 10 MB is the maximum form size
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+    // Parse form data
+    err := r.ParseMultipartForm(10 << 20) // 10 MB is the maximum form size
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+    }
 
-	// Retrieve patient ID from form data
-	patientID := r.FormValue("patient_id")
+    // Retrieve patient ID from form data
+    patientID := r.FormValue("patient_id")
 
-	// Access image files from form data
-	fileHeaders := r.MultipartForm.File["images"]
-	if len(fileHeaders) != 2 {
-		http.Error(w, "Please provide exactly 2 image files", http.StatusBadRequest)
-		return
-	}
+    // Access files from form data
+    fileHeaders := r.MultipartForm.File["images"] // The form field for files remains "images"
 
-	// Directory to save images
-	imageDir := "/home/hijack/Documents/thermetrix_backend/patients_files" // Replace this with your desired directory
+    // Directory to save files
+    imageDir := "/home/hijack/Documents/thermetrix_backend/patients_files" // Replace this with your desired directory
 
-	// Slice to store image paths
-	var imagePaths []string
+    // Slice to store file paths
+    var imagePaths []string
 
-	// Iterate through each image and save it
-	for _, fileHeader := range fileHeaders {
-		// Open the uploaded file
-		uploadedFile, err := fileHeader.Open()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		defer uploadedFile.Close()
+    // Iterate through each file and save it
+    for _, fileHeader := range fileHeaders {
+        // Open the uploaded file
+        uploadedFile, err := fileHeader.Open()
+        if err != nil {
+            http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+        }
+        defer uploadedFile.Close()
 
-		// Create the file path for saving
-		imageFileName := filepath.Join(imageDir, fileHeader.Filename)
+        // Create the complete file path for saving
+        completeImagePath := filepath.Join(imageDir, fileHeader.Filename)
 
-		// Create the image file
-		imageFile, err := os.Create(imageFileName)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		defer imageFile.Close()
+        // Create the file
+        imageFile, err := os.Create(completeImagePath)
+        if err != nil {
+            http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+        }
+        defer imageFile.Close()
 
-		// Copy the image data to the file
-		_, err = io.Copy(imageFile, uploadedFile)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+        // Copy the file data to the file
+        _, err = io.Copy(imageFile, uploadedFile)
+        if err != nil {
+            http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+        }
 
-		// Append the image path to the slice
-		imagePaths = append(imagePaths, imageFileName)
-	}
-	// Save image paths to the database
-  if err := c.savePatientImagesToDB(patientID, imagePaths); err != nil {
+        // Append the complete file path to the slice
+        imagePaths = append(imagePaths, completeImagePath)
+    }
+
+    // Save complete file paths to the database
+    if err := c.savePatientImagesToDB(patientID, imagePaths); err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return
     }
 
-
-	// Return success response if everything is saved successfully
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Images saved successfully"))
+    // Return success response if everything is saved successfully
+    w.WriteHeader(http.StatusOK)
+    w.Write([]byte("Files saved successfully"))
 }
 
 
+
 func (c *PodiumController) savePatientImagesToDB(patientID string, imagePaths []string) error {
-	// Ensure you have an active database connection (ormDB) before calling this function
+    // Ensure you have an active database connection (ormDB) before calling this function
 
-	// Iterate through imagePaths and insert records into the PatientImages table
-	for _, imagePath := range imagePaths {
-		// Insert each image path and patient ID into the database
-		if err := c.ormDB.Create(&PatientImages{
-			PatientID: patientID,
-			ImagePath: imagePath,
-		}).Error; err != nil {
-			return err
-		}
-	}
+    // Extract directory path from the first image path (assuming all images are in the same directory)
+    var dirPath string
+    if len(imagePaths) > 0 {
+        dirPath, _ = filepath.Split(imagePaths[0])
+    }
 
-	return nil
+    // Iterate through imagePaths and insert records into the PatientImages table
+    for _, imagePath := range imagePaths {
+        // Extract filename from imagePath
+        _, filename := filepath.Split(imagePath)
+
+        // Insert directory path into ImagePath and filename into Images
+        if err := c.ormDB.Create(&PatientImages{
+            PatientID: patientID,
+            ImagePath: dirPath,
+            Images:    filename, // Now storing only the filename
+        }).Error; err != nil {
+            return err
+        }
+    }
+
+    return nil
 }
 
 
@@ -1396,9 +1404,6 @@ func (c *PodiumController) getPatientImagesFromDB(w http.ResponseWriter, r *http
     params := mux.Vars(r)
     patientID := params["patientId"]
     
-    // Get the base URL
-    baseURL := getBaseURL()
-
     // Call the function to fetch patient images based on the patient ID
     patientImages, err := c.fetchPatientImagesFromDB(patientID)
     if err != nil {
@@ -1406,12 +1411,26 @@ func (c *PodiumController) getPatientImagesFromDB(w http.ResponseWriter, r *http
         return
     }
 
-    // Convert the patient images to the desired response format
-    response := make([]PatientImage, len(patientImages))
-    for i, image := range patientImages {
-        // Concatenate the base URL with the image path
-        imageURL := baseURL + image.ImagePath
-        response[i] = PatientImage{ImagePath: imageURL}
+    // Create a slice to store image URLs
+    imageUrls := make([]string, 0)
+
+    // Extract IsDFA_Complete from the first element as it's the same for all images
+    isDFA_Complete := true
+    if len(patientImages) > 0 {
+        isDFA_Complete = patientImages[0].IsDFA_Complete
+    }
+    
+    // Construct URLs for the images based on an API endpoint
+    for _, image := range patientImages {
+        imageURL := fmt.Sprintf("http://localhost:4001/api/v1/serve-image/%s", strings.TrimPrefix(image.Images, "/"))
+        imageUrls = append(imageUrls, imageURL)
+    }
+
+    // Construct the response object
+    response := map[string]interface{}{
+        "isDFA_Complete": isDFA_Complete,
+        "patientId":      patientID,
+        "url":            imageUrls,
     }
 
     // Encode the response as JSON
@@ -1420,17 +1439,14 @@ func (c *PodiumController) getPatientImagesFromDB(w http.ResponseWriter, r *http
         http.Error(w, "Failed to encode response", http.StatusInternalServerError)
         return
     }
-
+    
     // Set the appropriate Content-Type header
     w.Header().Set("Content-Type", "application/json")
 
     // Write the JSON response to the client
-    _, err = w.Write(jsonData)
-    if err != nil {
-        // Handle the error
-        return
-    }
+    w.Write(jsonData)
 }
+
 
 func (c *PodiumController) fetchPatientImagesFromDB(patientID string) ([]PatientImage, error) {
     var patientImages []PatientImage
@@ -1444,30 +1460,96 @@ func (c *PodiumController) fetchPatientImagesFromDB(patientID string) ([]Patient
 }
 
 
-func getBaseURL() string {
-    // Get the machine's IP address dynamically
-    addrs, err := net.InterfaceAddrs()
+func (c *PodiumController) serveImageHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Print("call received inside the funcrtions>>>>>>>>>")
+    // Extract the file path from the URL using Gorilla Mux Vars
+    params := mux.Vars(r)
+    // The filePath should be sanitized or validated to avoid directory traversal attacks
+    filePath := params["filepath"]
+	print("the path ?>>>>>>>>>",filePath)
+    // Construct the absolute file path
+    basePath := "/home/hijack/Documents/thermetrix_backend/patients_files/"
+    absFilePath := path.Join(basePath, filePath)
+
+    // Open the file
+    file, err := os.Open(absFilePath)
     if err != nil {
-        // Handle the error, e.g., log the error and return a default value
-        log.Println("Failed to fetch machine's IP address:", err)
-        return "http://localhost:4001"
+        // If the file does not exist or cannot be opened, return a 404 error
+        http.Error(w, "Not Found", http.StatusNotFound)
+        return
     }
+    defer file.Close()
 
-    var machineIP string
-    for _, addr := range addrs {
-        ipnet, ok := addr.(*net.IPNet)
-        if ok && !ipnet.IP.IsLoopback() && ipnet.IP.To4() != nil {
-            machineIP = ipnet.IP.String()
-            break
-        }
+    // Detect the content type and set the appropriate header
+    contentType := mime.TypeByExtension(filepath.Ext(filePath))
+    if contentType == "" {
+        // Default to octet-stream if the type cannot be detected
+        contentType = "application/octet-stream"
     }
+    w.Header().Set("Content-Type", contentType)
 
-    // Create the base URL with the machine's IP address and static port 4001
-    baseURL := "http://" + machineIP + ":4001"
-
-    // Return the base URL
-    return baseURL
+    // Serve the file
+    http.ServeContent(w, r, filePath, time.Now(), file)
 }
+
+
+//scan history code 
+
+func (c *PodiumController) ScanHistory(w http.ResponseWriter, r *http.Request) {
+    var patientImages []PatientImage
+    baseURL := "http://localhost:4001/api/v1/serve-image/"
+
+    // Fetch all patient images from the database
+    if err := c.ormDB.Find(&patientImages).Error; err != nil {
+        http.Error(w, "Failed to fetch patient images", http.StatusInternalServerError)
+        return
+    }
+
+    // Create a map to store all patient data with patientId as the key
+    allPatientsData := make(map[string]map[string]interface{})
+
+    // Iterate over all fetched patient images
+    for _, image := range patientImages {
+        _, filename := filepath.Split(image.Images) // Assuming ImagePath contains the full path
+        fileURL := baseURL + url.QueryEscape(filename) // Prepend the base URL and ensure the file name is URL encoded
+
+        // Check if we already have an entry for this patientID
+        if _, exists := allPatientsData[image.PatientID]; !exists {
+            allPatientsData[image.PatientID] = map[string]interface{}{
+                "isDFA_Complete": image.IsDFA_Complete,
+                "urls":           []string{},
+            }
+        }
+
+        // Append the new URL to the patient's URL list
+        allPatientsData[image.PatientID]["urls"] = append(allPatientsData[image.PatientID]["urls"].([]string), fileURL)
+    }
+
+    // Convert the map to a slice of patient data
+    var allPatientsSlice []map[string]interface{}
+    for patientID, data := range allPatientsData {
+        patientData := map[string]interface{}{
+            "patientId":      patientID,
+            "isDFA_Complete": data["isDFA_Complete"],
+            "url":            data["urls"],
+        }
+        allPatientsSlice = append(allPatientsSlice, patientData)
+    }
+
+    // Encode the response as JSON
+    jsonData, err := json.Marshal(allPatientsSlice)
+    if err != nil {
+        http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+        return
+    }
+
+    // Set the appropriate Content-Type header
+    w.Header().Set("Content-Type", "application/json")
+
+    // Write the JSON response to the client
+    w.Write(jsonData)
+}
+
 
 
 // end of kikc code .. . . . . . . . . .. . . . . >>>>>>>>>

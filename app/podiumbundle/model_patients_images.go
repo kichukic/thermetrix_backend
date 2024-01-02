@@ -8,12 +8,15 @@ type PatientImages struct {
     PatientID      string `gorm:"column:patient_id"`
     ImagePath      string `gorm:"column:image_path"`
     Images         string `gorm:"type:LONGTEXT;column:images"`
-    IsDFA_Complete bool   `gorm:"column:is_dfa_complete;default:true"`
+    IsDFA_Complete bool   `gorm:"column:is_dfa_complete;default:false"`
     CreatedAt      time.Time `gorm:"column:created_at"`
 }
 
 type PatientImage struct {
+    PatientID      string `gorm:"column:patient_id"`
     ImagePath string `json:"url"`
+    Images    string `gorm:"type:LONGTEXT;column:images"`
+    IsDFA_Complete bool   `gorm:"column:is_dfa_complete;default:false"`
 }
 
 // type PatientImage struct {
@@ -28,7 +31,7 @@ func NewPatientImages(patientID string, images []string) *PatientImages {
 	return &PatientImages{
 		PatientID: patientID,
 		Images:    imageStr,
-        IsDFA_Complete: true,
+        IsDFA_Complete: false,
         CreatedAt:  now,
 	}
 }
