@@ -1312,54 +1312,76 @@ func (c *PodiumController) SaveImagesForPatient(w http.ResponseWriter, r *http.R
         return
     }
 
-    // Retrieve patient ID from form data
+    // Retrieve patient ID and measurement ID from form data
     patientID := r.FormValue("patient_id")
+    measurementID := r.FormValue("measurement_id")
 
-    // Access files from form data
-    fileHeaders := r.MultipartForm.File["images"] // The form field for files remains "images"
+    // Track if DFA images are complete
+    isDFAComplete := false
+
+    // Access files from form data for each tag
+    fileHeaders := map[string][]*multipart.FileHeader{
+        "DFA":           r.MultipartForm.File["DFA"],
+        // Add more headers if required
+    }
 
     // Directory to save files
     imageDir := "/home/hijack/Documents/thermetrix_backend/patients_files" // Replace this with your desired directory
 
-    // Slice to store file paths
-    var imagePaths []string
+    // Iterate through each header type and associated file headers
+    for headerType, headers := range fileHeaders {
+        var imagePaths []string
 
-    // Iterate through each file and save it
-    for _, fileHeader := range fileHeaders {
-        // Open the uploaded file
-        uploadedFile, err := fileHeader.Open()
-        if err != nil {
+        // Process each file header
+        for _, fileHeader := range headers {
+            // Open the uploaded file
+            uploadedFile, err := fileHeader.Open()
+            if err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+            }
+            defer uploadedFile.Close()
+
+            // Create the complete file path for saving
+            completeImagePath := filepath.Join(imageDir, fileHeader.Filename)
+
+            // Create the file
+            imageFile, err := os.Create(completeImagePath)
+            if err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+            }
+            defer imageFile.Close()
+
+            // Copy the file data to the file
+            _, err = io.Copy(imageFile, uploadedFile)
+            if err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+            }
+
+            // Append the complete file path to the slice
+            imagePaths = append(imagePaths, completeImagePath)
+        }
+
+        // Check if the current header is "DFA" and if at least one file has been processed
+        if headerType == "DFA" && len(imagePaths) > 0 {
+            isDFAComplete = true
+        }
+
+        // Save complete file paths to the database with the header type as image key
+        if err := c.savePatientImagesToDB(measurementID, patientID, imagePaths, headerType); err != nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
         }
-        defer uploadedFile.Close()
-
-        // Create the complete file path for saving
-        completeImagePath := filepath.Join(imageDir, fileHeader.Filename)
-
-        // Create the file
-        imageFile, err := os.Create(completeImagePath)
-        if err != nil {
-            http.Error(w, err.Error(), http.StatusInternalServerError)
-            return
-        }
-        defer imageFile.Close()
-
-        // Copy the file data to the file
-        _, err = io.Copy(imageFile, uploadedFile)
-        if err != nil {
-            http.Error(w, err.Error(), http.StatusInternalServerError)
-            return
-        }
-
-        // Append the complete file path to the slice
-        imagePaths = append(imagePaths, completeImagePath)
     }
 
-    // Save complete file paths to the database
-    if err := c.savePatientImagesToDB(patientID, imagePaths); err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
+    // After all headers are processed, update the IsDFA_Complete status if needed
+    if isDFAComplete {
+        if err := c.ormDB.Model(&PatientImages{}).Where("measurement_id = ? AND patient_id = ?", measurementID, patientID).Update("IsDFA_Complete", true).Error; err != nil {
+            http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+        }
     }
 
     // Return success response if everything is saved successfully
@@ -1367,42 +1389,56 @@ func (c *PodiumController) SaveImagesForPatient(w http.ResponseWriter, r *http.R
     w.Write([]byte("Files saved successfully"))
 }
 
-
-
-func (c *PodiumController) savePatientImagesToDB(patientID string, imagePaths []string) error {
+func (c *PodiumController) savePatientImagesToDB(measurementID string, patientID string, imagePaths []string, headerType string) error {
     // Ensure you have an active database connection (ormDB) before calling this function
 
-    // Extract directory path from the first image path (assuming all images are in the same directory)
-    var dirPath string
-    if len(imagePaths) > 0 {
-        dirPath, _ = filepath.Split(imagePaths[0])
-    }
+    // Define a PatientImages struct to hold the data to upsert
+    var patientImages PatientImages
 
-    // Iterate through imagePaths and insert records into the PatientImages table
-    for _, imagePath := range imagePaths {
-        // Extract filename from imagePath
-        _, filename := filepath.Split(imagePath)
+    // Check if a record already exists
+    exists := c.ormDB.First(&patientImages, "measurement_id = ? AND patient_id = ?", measurementID, patientID).Error == nil
 
-        // Insert directory path into ImagePath and filename into Images
-        if err := c.ormDB.Create(&PatientImages{
-            PatientID: patientID,
-            ImagePath: dirPath,
-            Images:    filename, // Now storing only the filename
-        }).Error; err != nil {
-            return err
+    // If there are no image paths provided, set ImagePath and Images to an empty string
+    if len(imagePaths) == 0 {
+        patientImages = PatientImages{
+            Measurement_id: measurementID,
+            PatientID:      patientID,
+            ImagePath:      "", // Empty string to represent NULL
+            Images:         "", // Empty string to represent NULL
+            ImageKey:       headerType,
+        }
+    } else {
+        // Extract directory path from the first image path (assuming all images are in the same directory)
+        dirPath, _ := filepath.Split(imagePaths[0])
+        
+        // Use only the first image path for this example
+        _, filename := filepath.Split(imagePaths[0])
+
+        patientImages = PatientImages{
+            Measurement_id: measurementID,
+            PatientID:      patientID,
+            ImagePath:      dirPath,
+            Images:         filename, // Now storing only the filename
+            ImageKey:       headerType,
         }
     }
 
-    return nil
+    // Perform upsert operation
+    if exists {
+        // Record exists; update it
+        return c.ormDB.Model(&PatientImages{}).Where("measurement_id = ? AND patient_id = ?", measurementID, patientID).Updates(patientImages).Error
+    } else {
+        // Record does not exist; insert it
+        return c.ormDB.Create(&patientImages).Error
+    }
 }
-
 
 //fetch patient pdf 
 
 func (c *PodiumController) getPatientImagesFromDB(w http.ResponseWriter, r *http.Request) {
     // Extract the patient ID from the request URL
     params := mux.Vars(r)
-    patientID := params["patientId"]
+    patientID := params["MeasurementID"]
     
     // Call the function to fetch patient images based on the patient ID
     patientImages, err := c.fetchPatientImagesFromDB(patientID)
@@ -1411,19 +1447,28 @@ func (c *PodiumController) getPatientImagesFromDB(w http.ResponseWriter, r *http
         return
     }
 
+    // Check if patientImages is nil or empty and return a "not found" response if true
+    if patientImages == nil || len(patientImages) == 0 {
+        http.Error(w, "No patient images found", http.StatusNotFound)
+        return
+    }
+
+    // Initialize isDFA_Complete with a default value (e.g., false)
+    isDFA_Complete := false
+    if len(patientImages) > 0 {
+        // Extract IsDFA_Complete from the first element if images are present
+        isDFA_Complete = patientImages[0].IsDFA_Complete
+    }
+
     // Create a slice to store image URLs
     imageUrls := make([]string, 0)
 
-    // Extract IsDFA_Complete from the first element as it's the same for all images
-    isDFA_Complete := true
-    if len(patientImages) > 0 {
-        isDFA_Complete = patientImages[0].IsDFA_Complete
-    }
-    
-    // Construct URLs for the images based on an API endpoint
+    // Loop through the patient images and construct image URLs
     for _, image := range patientImages {
-        imageURL := fmt.Sprintf("http://localhost:4001/api/v1/serve-image/%s", strings.TrimPrefix(image.Images, "/"))
-        imageUrls = append(imageUrls, imageURL)
+        if image.Images != "" {
+            imageURL := fmt.Sprintf("http://localhost:4001/api/v1/serve-image/%s", strings.TrimPrefix(image.Images, "/"))
+            imageUrls = append(imageUrls, imageURL)
+        }
     }
 
     // Construct the response object
@@ -1447,13 +1492,12 @@ func (c *PodiumController) getPatientImagesFromDB(w http.ResponseWriter, r *http
     w.Write(jsonData)
 }
 
-
 func (c *PodiumController) fetchPatientImagesFromDB(patientID string) ([]PatientImage, error) {
     var patientImages []PatientImage
 
 
     // Fetch the patient images from the database based on patientID
-    if err := c.ormDB.Where("patient_id = ?", patientID).Find(&patientImages).Error; err != nil {
+    if err := c.ormDB.Where("measurement_id = ?", patientID).Find(&patientImages).Error; err != nil {
         return nil, err
     }
     return patientImages, nil
