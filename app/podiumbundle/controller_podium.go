@@ -3611,7 +3611,7 @@ func (c *PodiumController) GetMyPatientsHandler(w http.ResponseWriter, r *http.R
 	if c.isDoctor(user) {
 		doctor := c.getDoctor(user)
 		practiceUserId := doctor.GetPracticeUserId(c.ormDB)
-		db.Debug().Set("gorm:auto_preload", true).Set("gorm:auto_preload", true).Where("patients.id IN ( SELECT patient_id FROM doctor_patient_relations WHERE doctor_id = ? AND consent_status IN (2))", doctor.ID).Limit(paging.Limit).Offset(offset).Find(&patients) // nur  angenommeneWhere("patients.id IN ( SELECT patient_id FROM doctor_patient_relations WHERE doctor_id = ? AND consent_status IN (2))", doctor.ID).Find(&patients) // nur  angenommene
+		db.Debug().Set("gorm:auto_preload", true).Where("patients.id IN ( SELECT patient_id FROM doctor_patient_relations WHERE doctor_id = ? AND consent_status IN (2))", doctor.ID).Limit(paging.Limit).Offset(offset).Find(&patients) // nur  angenommeneWhere("patients.id IN ( SELECT patient_id FROM doctor_patient_relations WHERE doctor_id = ? AND consent_status IN (2))", doctor.ID).Find(&patients) // nur  angenommene
 		dbTotalCount = dbTotalCount.Where("patients.id IN ( SELECT patient_id FROM doctor_patient_relations WHERE doctor_id = ? AND consent_status IN (2))", doctor.ID)
 		for i, patient := range patients {
 			c.ormDB.DB().QueryRow("SELECT date_time_from  FROM appointments a LEFT JOIN appointment_statuses aps ON a.appointment_status_id = aps.id  WHERE aps.status_def_id = 3 AND a.patient_id =? AND a.date_time_from < NOW() ORDER BY date_time_from DESC LIMIT 1", patient.ID).Scan(&patient.LastAppointmentDate)
@@ -3625,6 +3625,7 @@ func (c *PodiumController) GetMyPatientsHandler(w http.ResponseWriter, r *http.R
 			}
 			patients[i] = patient
 		}
+		fmt.Println("Number of patients for doctor >>>>>>>>>>>>>>>>:", len(patients))
 	} else if c.isPractice(user) {
 
 		practice := c.getPractice(user)
@@ -3636,7 +3637,7 @@ func (c *PodiumController) GetMyPatientsHandler(w http.ResponseWriter, r *http.R
 		db.Set("gorm:auto_preload", true).Where("user_id IN (SELECT id FROM system_accounts WHERE created_by = ?) OR patients.id IN ( SELECT patient_id FROM doctor_patient_relations WHERE doctor_id IN (SELECT doctor_id FROM practice_doctors WHERE practice_id = ?) AND consent_status IN (2))", user.ID, practice.ID).Limit(paging.Limit).Offset(offset).Find(&patients) // nur  angenommene
 		dbTotalCount = dbTotalCount.Where("user_id IN (SELECT id FROM system_accounts WHERE created_by = ?) OR patients.id IN ( SELECT patient_id FROM doctor_patient_relations WHERE doctor_id IN (SELECT doctor_id FROM practice_doctors WHERE practice_id = ?) AND consent_status IN (2))", user.ID, practice.ID)
 		//c.ormDB.Set("gorm:auto_preload", true).Where("user_id IN (SELECT id FROM system_accounts WHERE created_by = ?) OR id IN ( SELECT patient_id FROM doctor_patient_relations WHERE doctor_id IN (SELECT doctor_id FROM practice_doctors WHERE practice_id = ?) AND consent_status IN (2))", user.ID, practice.ID).Find(&patients) // nur  angenommene
-
+		fmt.Print(userIdsOfDoctors)
 		for i, patient := range patients {
 			c.ormDB.DB().QueryRow("SELECT date_time_from  FROM appointments a LEFT JOIN appointment_statuses aps ON a.appointment_status_id = aps.id  WHERE aps.status_def_id = 3 AND a.patient_id =? AND a.date_time_from < NOW() ORDER BY date_time_from DESC LIMIT 1", patient.ID).Scan(&patient.LastAppointmentDate)
 			c.ormDB.DB().QueryRow("SELECT measurement_date FROM measurements m WHERE m.patient_id =? ORDER BY measurement_date DESC LIMIT 1", patient.ID).Scan(&patient.LastMeasurementDate)
@@ -3648,6 +3649,7 @@ func (c *PodiumController) GetMyPatientsHandler(w http.ResponseWriter, r *http.R
 
 			patients[i] = patient
 		}
+		fmt.Println("Number of patients for practice ++++++++++++++++++++++:", len(patients))
 	}
 
 	dbTotalCount.Model(&Patient{}).Count(&paging.TotalCount)

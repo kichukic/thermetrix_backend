@@ -1,9 +1,10 @@
 package podiumbundle
 
 import (
-	"github.com/jinzhu/gorm"
 	"net/http"
 	"thermetrix_backend/app/core"
+
+	"github.com/jinzhu/gorm"
 )
 
 // PodiumBundle handle fleet resources
@@ -132,17 +133,11 @@ func NewPodiumBundle(ormDB *gorm.DB, users *map[string]core.User) core.Bundle {
 		core.Route{Method: http.MethodGet, Path: "/measurements/redblue", Handler: hc.GetMeasurementsWithStatusRedBlueHandler},
 		core.Route{Method: http.MethodGet, Path: "/measurements/patient/{patientId:[0-9]+}", Handler: hc.GetMeasurementsForPatientHandler},
 
-
-
-
 		core.Route{Method: http.MethodGet, Path: "/measurements/{measurementId:[0-9]+}", Handler: hc.GetMeasurementHandler},
 		// Deprecated for admin frontend
 		core.Route{Method: http.MethodGet, Path: "/measurements/table-config", Handler: hc.GetMeasurementsTableConfigHandler},
 		//DONE
 		core.Route{Method: http.MethodPost, Path: "/measurements", Handler: hc.RetrieveMeasurementHandler},
-
-
-
 
 		core.Route{Method: http.MethodDelete, Path: "/measurements/{measurementId:[0-9]+}", Handler: hc.DeleteMeasurementHandler},
 
@@ -221,9 +216,7 @@ func NewPodiumBundle(ormDB *gorm.DB, users *map[string]core.User) core.Bundle {
 		core.Route{Method: http.MethodGet, Path: "/ScanHistory/{MeasurementID}", Handler: hc.getPatientImagesFromDB},
 		core.Route{Method: http.MethodGet, Path: "/ScanHistory", Handler: hc.ScanHistory},
 		core.Route{Method: http.MethodGet, Path: "/serve-image/{filepath}", Handler: hc.serveImageHandler},
-		
 
-		
 		//core.Route{Method: http.MethodGet, Path: "/mail/test", Handler: hc.TestMailHandler},
 		//core.Route{Method: http.MethodPost, Path: "/practice/accounts", Handler: hc.GetPractice},
 

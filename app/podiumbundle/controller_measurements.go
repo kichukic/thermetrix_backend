@@ -3142,70 +3142,76 @@ func DateEqual(date1, date2 time.Time) bool {
 	return y1 == y2 && m1 == m2 && d1 == d2
 }
 
-func (c *PodiumController) ExportMeasurementHandler(w http.ResponseWriter, r *http.Request) {
-	println("ExportMeasurementHandler", r.URL.Path)
-	ok := false
-	var user *core.User
-	if ok, user = c.GetUser(w, r); !ok {
-		_ = user
-		return
-	}
+func (c *PodiumController) 	ExportMeasurementHandler(w http.ResponseWriter, r *http.Request) {
+    println("ExportMeasurementHandler", r.URL.Path)
+    ok := false
+    var user *core.User
+    if ok, user = c.GetUser(w, r); !ok {
+        _ = user
+        return
+    }
 
-	vars := mux.Vars(r)
-	measurementId, _ := strconv.ParseInt(vars["measurementId"], 10, 64)
+    vars := mux.Vars(r)
+    measurementId, _ := strconv.ParseInt(vars["measurementId"], 10, 64)
 
-	timeOffset := int64(0)
-	hTimeOffset := r.Header["X-Timezone-Offset"]
-	log.Println(hTimeOffset)
-	if len(hTimeOffset) > 0 {
-		tmp, err := strconv.Atoi(hTimeOffset[0])
-		if err == nil {
-			timeOffset = int64(tmp) * 60
-		}
-	}
+    // Print statement to check measurement ID
+    fmt.Println("Measurement ID:", measurementId)
 
-	measurement := Measurement{}
+    timeOffset := int64(0)
+    hTimeOffset := r.Header["X-Timezone-Offset"]
+    log.Println(hTimeOffset)
+    if len(hTimeOffset) > 0 {
+        tmp, err := strconv.Atoi(hTimeOffset[0])
+        if err == nil {
+            timeOffset = int64(tmp) * 60
+        }
+    }
 
-	if c.isPatient(user) {
-		patient := c.getPatient(user)
-		c.ormDB.Set("gorm:auto_preload", true).Where("patient_id = ?", patient.ID).First(&measurement, measurementId)
-	} else if c.isDoctor(user) {
-		doctor := c.getDoctor(user)
+    measurement := Measurement{}
 
-		practice := doctor.GetPractice(c.ormDB)
-		c.ormDB.Set("gorm:auto_preload", true).Where("patient_id IN (SELECT patient_id FROM doctor_patient_relations WHERE doctor_id IN (SELECT doctor_id FROM practice_doctors WHERE practice_id = ?) AND consent_status>=2)", practice.ID).First(&measurement, measurementId)
+    if c.isPatient(user) {
+        patient := c.getPatient(user)
+        c.ormDB.Set("gorm:auto_preload", true).Where("patient_id = ?", patient.ID).First(&measurement, measurementId)
+    } else if c.isDoctor(user) {
+        doctor := c.getDoctor(user)
 
-		//c.ormDB.Set("gorm:auto_preload", true).Where("patient_id IN (SELECT patient_id FROM doctor_patient_relations WHERE doctor_id = ? AND consent_status>=2)", doctor.ID).Where("id IN (SELECT measurement_id FROM measurement_shareds WHERE deleted_at IS NULL AND doctor_id = ?)", doctor.ID).First(&measurement, measurementId)
-	} else if c.isPractice(user) {
-		practice := c.getPractice(user)
-		c.ormDB.Set("gorm:auto_preload", true).Where("patient_id IN (SELECT patient_id FROM doctor_patient_relations WHERE doctor_id IN (SELECT doctor_id FROM practice_doctors WHERE practice_id = ?) AND consent_status>=2)", practice.ID).First(&measurement, measurementId)
-	} else if user.UserType == 0 {
-		c.ormDB.Set("gorm:auto_preload", true).First(&measurement, measurementId)
-	}
+        practice := doctor.GetPractice(c.ormDB)
+        c.ormDB.Set("gorm:auto_preload", true).Where("patient_id IN (SELECT patient_id FROM doctor_patient_relations WHERE doctor_id IN (SELECT doctor_id FROM practice_doctors WHERE practice_id = ?) AND consent_status>=2)", practice.ID).First(&measurement, measurementId)
+    } else if c.isPractice(user) {
+        practice := c.getPractice(user)
+        c.ormDB.Set("gorm:auto_preload", true).Where("patient_id IN (SELECT patient_id FROM doctor_patient_relations WHERE doctor_id IN (SELECT doctor_id FROM practice_doctors WHERE practice_id = ?) AND consent_status>=2)", practice.ID).First(&measurement, measurementId)
+    } else if user.UserType == 0 {
+        c.ormDB.Set("gorm:auto_preload", true).First(&measurement, measurementId)
+    }
 
-	// TEMP
-	//c.ormDB.Set("gorm:auto_preload", true).First(&measurement, measurementId)
+    // Print statement to check measurement data after retrieval
+    fmt.Println("Measurement:", measurement)
 
-	c.ormDB.Set("gorm:auto_preload", true).First(&measurement.Patient, measurement.PatientId)
+    c.ormDB.Set("gorm:auto_preload", true).First(&measurement.Patient, measurement.PatientId)
 
-	if measurement.MeasurementFiles == nil {
-		measurement.MeasurementFiles = make([]MeasurementFile, 0)
-	}
-	timestamp := measurement.MeasurementDate.Time.Unix()
-	timestamp = timestamp - timeOffset
+    if measurement.MeasurementFiles == nil {
+        measurement.MeasurementFiles = make([]MeasurementFile, 0)
+    }
 
-	measurement.MeasurementDate.Time = time.Unix(timestamp, 0)
-	fileName := c.createMeasurementPDF(measurement, timeOffset)
+    // Print statement to check measurement data before PDF creation
+    fmt.Println("Measurement before PDF creation:", measurement)
 
-	log.Println(fileName)
+    timestamp := measurement.MeasurementDate.Time.Unix()
+    timestamp = timestamp - timeOffset
 
-	w.Header().Set("Content-Disposition", `inline; filename="Scan `+strconv.Itoa(int(measurement.ID))+`.pdf"`)
-	w.Header().Set("Content-Type", "application/pdf")
-	w.Header().Add("Access-Control-Allow-Origin", "*")
+    measurement.MeasurementDate.Time = time.Unix(timestamp, 0)
+    fileName := c.createMeasurementPDF(measurement, timeOffset)
 
-	http.ServeFile(w, r, fileName)
+    log.Println(fileName)
 
-	//c.SendJSON(w, &measurement, http.StatusOK)
+    // Print statement to check the file name created for the PDF
+    fmt.Println("PDF File Name:", fileName)
+
+    w.Header().Set("Content-Disposition", `inline; filename="Scan `+strconv.Itoa(int(measurement.ID))+`.pdf"`)
+    w.Header().Set("Content-Type", "application/pdf")
+    w.Header().Add("Access-Control-Allow-Origin", "*")
+
+    http.ServeFile(w, r, fileName)
 }
 
 type HelperSendMail struct {
