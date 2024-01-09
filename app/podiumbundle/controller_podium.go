@@ -1326,7 +1326,14 @@ func (c *PodiumController) SaveImagesForPatient(w http.ResponseWriter, r *http.R
     }
 
     // Directory to save files
-    imageDir := "/home/hijack/Documents/thermetrix_backend/patients_files" // Replace this with your desired directory
+
+	currentDir, err := os.Getwd()
+if err != nil {
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    return
+}
+imageDir := filepath.Join(currentDir, "patients_files")
+   // imageDir := "/home/hijack/Documents/thermetrix_backend/patients_files" // Replace this with your desired directory
 
     // Iterate through each header type and associated file headers
     for headerType, headers := range fileHeaders {
@@ -1512,7 +1519,14 @@ func (c *PodiumController) serveImageHandler(w http.ResponseWriter, r *http.Requ
     filePath := params["filepath"]
 	print("the path ?>>>>>>>>>",filePath)
     // Construct the absolute file path
-    basePath := "/home/hijack/Documents/thermetrix_backend/patients_files/"
+    // basePath := "/home/hijack/Documents/thermetrix_backend/patients_files/"
+	currentDir, err := os.Getwd()
+    if err != nil {
+        // Handle the error, possibly return from the function
+        http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+        return
+    }
+	basePath := path.Join(currentDir, "patients_files")
     absFilePath := path.Join(basePath, filePath)
 
     // Open the file

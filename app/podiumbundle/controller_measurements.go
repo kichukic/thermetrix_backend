@@ -1915,8 +1915,8 @@ func (c *PodiumController) GetMeasurementFileHandler(w http.ResponseWriter, r *h
 				http.ServeFile(w, r, file.GetAbsolutePath())
 				return
 			}
-		}
-	}
+		}                         
+	}				
 	c.HandleErrorWithStatus(errors.New("File not found"), w, http.StatusNotFound)
 }
 
