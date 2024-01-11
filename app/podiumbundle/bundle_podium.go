@@ -222,7 +222,7 @@ func NewPodiumBundle(ormDB *gorm.DB, users *map[string]core.User) core.Bundle {
 
 		core.Route{Method: http.MethodOptions, Path: "/{rest:.*}", Handler: hc.OptionsHandler},
 	}
-
+	
 	return &PodiumBundle{
 		routes: r,
 	}

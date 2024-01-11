@@ -3375,7 +3375,7 @@ func (c *PodiumController) createMeasurementPDF(scan Measurement, timeOffset int
 
 	pdf.Text(10, 15, "Scan on "+scan.MeasurementDate.Time.Format("02/01/2006")+" @ "+scan.MeasurementDate.Time.Format("15:04"))
 
-	pdf.Image("logo_podium.png", 140, 3, 50, 0, false, "", 0, "")
+	//pdf.Image("logo_podium.png", 140, 3, 50, 0, false, "", 0, "")
 
 	x := 0.0
 	pdf.SetFont("Arial", "", 12)
