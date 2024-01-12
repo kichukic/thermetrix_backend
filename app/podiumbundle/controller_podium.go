@@ -1375,7 +1375,7 @@ imageDir := filepath.Join(currentDir, "patients_files")
         if headerType == "DFA" && len(imagePaths) > 0 {
             isDFAComplete = true
         }
-
+	
         // Save complete file paths to the database with the header type as image key
         if err := c.savePatientImagesToDB(measurementID, patientID, imagePaths, headerType); err != nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
