@@ -1188,7 +1188,7 @@ type EmailRequest struct {
 }
  
 
-
+//ispl_KTH_14/2/2024
 func (c *PodiumController) SendMail1(w http.ResponseWriter, r *http.Request) {
     // Parse the multi-part form data
     err := r.ParseMultipartForm(10 << 20) // 10 MB is the maximum form size
@@ -1300,10 +1300,10 @@ func (c *PodiumController) SendMail1(w http.ResponseWriter, r *http.Request) {
         return
     }
 }
+//ispl_KTH_14/2/2024
 
-
+//ispl_KTH_14/2/2024
 //save images for patient  code //
-
 func (c *PodiumController) SaveImagesForPatient(w http.ResponseWriter, r *http.Request) {
     // Parse form data
     err := r.ParseMultipartForm(10 << 20) // 10 MB is the maximum form size
@@ -1395,7 +1395,9 @@ imageDir := filepath.Join(currentDir, "patients_files")
     w.WriteHeader(http.StatusOK)
     w.Write([]byte("Files saved successfully"))
 }
+//ispl_KTH_14/2/2024
 
+//ispl_KTH_14/2/2024
 func (c *PodiumController) savePatientImagesToDB(measurementID string, patientID string, imagePaths []string, headerType string) error {
     // Ensure you have an active database connection (ormDB) before calling this function
 
@@ -1439,9 +1441,11 @@ func (c *PodiumController) savePatientImagesToDB(measurementID string, patientID
         return c.ormDB.Create(&patientImages).Error
     }
 }
+//ispl_KTH_14/2/2024
 
+
+//ispl_KTH_14/2/2024
 //fetch patient pdf 
-
 func (c *PodiumController) getPatientImagesFromDB(w http.ResponseWriter, r *http.Request) {
     // Extract the patient ID from the request URL
     params := mux.Vars(r)
@@ -1498,7 +1502,9 @@ func (c *PodiumController) getPatientImagesFromDB(w http.ResponseWriter, r *http
     // Write the JSON response to the client
     w.Write(jsonData)
 }
+//ispl_KTH_14/2/2024
 
+//ispl_KTH_14/2/2024
 func (c *PodiumController) fetchPatientImagesFromDB(patientID string) ([]PatientImage, error) {
     var patientImages []PatientImage
 
@@ -1509,8 +1515,10 @@ func (c *PodiumController) fetchPatientImagesFromDB(patientID string) ([]Patient
     }
     return patientImages, nil
 }
+//ispl_KTH_14/2/2024
 
 
+//ispl_KTH_14/2/2024
 func (c *PodiumController) serveImageHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Print("call received inside the funcrtions>>>>>>>>>")
     // Extract the file path from the URL using Gorilla Mux Vars
@@ -1549,13 +1557,16 @@ func (c *PodiumController) serveImageHandler(w http.ResponseWriter, r *http.Requ
     // Serve the file
     http.ServeContent(w, r, filePath, time.Now(), file)
 }
+//ispl_KTH_14/2/2024
 
 
+//ispl_KTH_14/2/2024
 //scan history code 
-
 func (c *PodiumController) ScanHistory(w http.ResponseWriter, r *http.Request) {
     var patientImages []PatientImage
+	//replace base url with server's base url
     baseURL := "http://localhost:4001/api/v1/serve-image/"
+	
 
     // Fetch all patient images from the database
     if err := c.ormDB.Find(&patientImages).Error; err != nil {
@@ -1607,10 +1618,10 @@ func (c *PodiumController) ScanHistory(w http.ResponseWriter, r *http.Request) {
     // Write the JSON response to the client
     w.Write(jsonData)
 }
+//ispl_KTH_14/2/2024
 
 
 
-// end of kikc code .. . . . . . . . . .. . . . . >>>>>>>>>
 
 
 
