@@ -314,4 +314,4 @@ curl -X POST http://yourdomain.com/sendmail1 \
 
  in       ---controllerpodium.go---    file theres a function called  (getPatientImagesFromDB) in that function on line  1484 a variable called imageURL holds the server response url we need tochange it according the base url we r currently having related to server
 
- also keep  **patient_files** and **PodiumFiles** folders inside the root folder of the project
+ also keep  **patient_files** , **cover_letters** and **PodiumFiles** folders inside the root folder of the project
