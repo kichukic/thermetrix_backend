@@ -1730,11 +1730,47 @@ func (c *PodiumController) GetCoverLetter(w http.ResponseWriter, r *http.Request
     // Query the database for cover letter records based on the provided measurement ID
     var coverLetter CoverLetter
     if measurementID == "" {
-        http.Error(w, "Measurement ID is required", http.StatusBadRequest)
+        // If measurement ID is empty, return a response with default values
+        response := map[string]interface{}{
+            "cover_letter_url": "",
+            "is_referred":      false,
+            "measurement_id":   "",
+        }
+        // Encode the response as JSON
+        jsonData, err := json.Marshal(response)
+        if err != nil {
+            http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+        }
+        // Set response headers and write JSON data to response
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusOK)
+        w.Write(jsonData)
         return
     }
 
+    // If measurement ID is provided, query the database for the cover letter
     if err := c.ormDB.Where("measurement_id = ?", measurementID).First(&coverLetter).Error; err != nil {
+        // If no cover letter is found, return a response with default values
+        if errors.Is(err, gorm.ErrRecordNotFound) {
+            response := map[string]interface{}{
+                "cover_letter_url": "",
+                "is_referred":      false,
+                "measurement_id":   measurementID,
+            }
+            // Encode the response as JSON
+            jsonData, err := json.Marshal(response)
+            if err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+            }
+            // Set response headers and write JSON data to response
+            w.Header().Set("Content-Type", "application/json")
+            w.WriteHeader(http.StatusOK)
+            w.Write(jsonData)
+            return
+        }
+        // If another error occurs, return an internal server error
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return
     }
@@ -1764,6 +1800,7 @@ func (c *PodiumController) GetCoverLetter(w http.ResponseWriter, r *http.Request
     w.WriteHeader(http.StatusOK)
     w.Write(jsonData)
 }
+
 
 func (c *PodiumController) serveCoverLetterHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract the file path from the URL using Gorilla Mux Vars
