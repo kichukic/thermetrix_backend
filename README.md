@@ -303,6 +303,58 @@ curl -X POST http://yourdomain.com/sendmail1 \
  
  
 
+         POST COVER LETTER API
+--------------------------------------------
+
+http://localhost:4001/api/v1/cover-letter
+
+method : post (form-data)
+
+  body
+___________
+patient_id : "text"
+measurement_id : "text"
+cover_letter : file
+
+
+
+
+        GET COVER LETTER API
+-------------------------------------------
+http://localhost:4001/api/v1/get-cover-letter/{measurement_id}
+
+method : get
+
+  response 
+______________
+{
+    "cover_letter_url": "http://localhost:4001/api/v1/download-cover-letter/2024031518532.pdf",
+    "is_referred": true,
+    "measurement_id": "112"
+}
+
+on line 1743 
+theres few codes which specifies the base url of the servers , change it according to the server address 
+for example  : change localhost to server address
+
+   coverLetterURL := ""
+    if coverLetter.CoverLetter != "" {
+        coverLetterURL = fmt.Sprintf("http://localhost:4001/api/v1/download-cover-letter/%s", filepath.Base(coverLetter.CoverLetter))
+    }
+
+
+
+
+          DOWNLOAD COVERLETTER
+----------------------------------------------
+/download-cover-letter/{filepath}
+http://localhost:4001/api/v1/download-cover-letter/20240315185325.pdf
+
+will download the cover letter
+
+
+
+
 
 
 
