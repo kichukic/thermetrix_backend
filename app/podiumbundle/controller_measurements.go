@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"github.com/jung-kurt/gofpdf"
-//	"gotools/tools"
+	//	"gotools/tools"
 	tools "github.com/kirillDanshin/nulltime"
 	"io"
 	"io/ioutil"
@@ -3206,7 +3206,6 @@ func (c *PodiumController) ExportMeasurementHandler(w http.ResponseWriter, r *ht
 		c.ormDB.Set("gorm:auto_preload", true).Where("patient_id = ?", patient.ID).First(&measurement, measurementId)
 	} else if c.isDoctor(user) {
 		doctor := c.getDoctor(user)
-
 		practice := doctor.GetPractice(c.ormDB)
 		c.ormDB.Set("gorm:auto_preload", true).Where("patient_id IN (SELECT patient_id FROM doctor_patient_relations WHERE doctor_id IN (SELECT doctor_id FROM practice_doctors WHERE practice_id = ?) AND consent_status>=2)", practice.ID).First(&measurement, measurementId)
 	} else if c.isPractice(user) {
@@ -3382,9 +3381,9 @@ func parseAddresses(addresses []string) []string {
 	return newAddresses
 }
 
-func (c *PodiumController) createMeasurementPDF(scan Measurement, timeOffset int64) string {
 
-	//X tmpPath := "tmp/" + core.RandomString(10) + "/"
+
+func (c *PodiumController) createMeasurementPDF(scan Measurement, timeOffset int64) string {
 	tmpPath := c.GetTmpUploadPath()
 	os.MkdirAll(tmpPath, 0777)
 
@@ -3396,18 +3395,13 @@ func (c *PodiumController) createMeasurementPDF(scan Measurement, timeOffset int
 		pdf.SetFont("Arial", "I", 8)
 		pdf.CellFormat(0, 10, scan.Patient.FirstName+" "+scan.Patient.LastName+"", "", 0, "L", false, 0, "")
 		pdf.SetY(-12)
-		//pdf.CellFormat(0, 10, "Scan of "+scan.MeasurementDate.Time.Format("02/01/2006"), "", 0, "L", false, 0, "")
 		pdf.CellFormat(0, 10, "Scan on "+scan.MeasurementDate.Time.Format("02/01/2006")+" @ "+scan.MeasurementDate.Time.Format("15:04"), "", 0, "L", false, 0, "")
-
 		pdf.CellFormat(0, 10, fmt.Sprintf("Page %d of %d                            ", pdf.PageNo(), 2), "", 0, "C", false, 0, "")
 	})
 
 	pdf.AddPage()
 	pdf.SetFont("Arial", "B", 18)
-
 	pdf.Text(10, 15, "Scan on "+scan.MeasurementDate.Time.Format("02/01/2006")+" @ "+scan.MeasurementDate.Time.Format("15:04"))
-
-	//pdf.Image("logo_podium.png", 140, 3, 50, 0, false, "", 0, "")
 
 	x := 0.0
 	pdf.SetFont("Arial", "", 12)
@@ -3471,81 +3465,27 @@ func (c *PodiumController) createMeasurementPDF(scan Measurement, timeOffset int
 
 	y += 3
 
-	//Patient: [name], scanned by Podiatrist: [name] at Practice: [name]
-	/*text := ""
-	if scan.Patient.LastName != "" {
-		if scan.Patient.FirstName != "" {
-			text += fmt.Sprintf("Patient: %s %s", scan.Patient.LastName, scan.Patient.FirstName)
-		} else {
-			text += fmt.Sprintf("Patient: %s", scan.Patient.LastName)
-		}
-	} else {
-		patientUser := core.User{}
-		c.ormDB.Set("gorm:auto_preload", true).First(&patientUser, scan.Patient.UserId)
-		text = fmt.Sprintf("Patient: %s", patientUser.Username)
-	}
-
-	c.ormDB.Set("gorm:auto_preload", true).First(&scan.Patient, scan.PatientId)
-	if scan.DoctorId > 0 {
-		doc := Doctor{}
-		c.ormDB.Set("gorm:auto_preload", true).First(&doc, scan.DoctorId)
-		docName := ""
-		if doc.LastName != "" {
-			docName = fmt.Sprintf("%s %s", doc.FirstName, doc.LastName)
-		} else {
-			docUser := core.User{}
-			c.ormDB.Set("gorm:auto_preload", true).Where("id=(SELECT user_id FROM doctor_users WHERE doctor_id=?)", doc.ID).First(&docUser)
-			docName = docUser.Username
-		}
-		if text != "" {
-			text += fmt.Sprintf(", scanned by Podiatrist: %s", docName)
-		} else {
-			text += fmt.Sprintf("scanned by Podiatrist: %s", docName)
-		}
-	}
-
-	practice := Practice{}
-	c.ormDB.Set("gorm:auto_preload", true).Where("user_id=?", scan.UserId).First(&practice)
-	if practice.ID > 0 {
-		if practice.Name != "" {
-			text += fmt.Sprintf(" at Practice: %s", practice.Name)
-		} else {
-			practiceUser := core.User{}
-			c.ormDB.Set("gorm:auto_preload", true).First(&practiceUser, practice.UserId)
-			text += fmt.Sprintf(" at Practice: %s", practiceUser.Username)
-		}
-	}
-
-	pdf.Text(10, 22, text)*/
-
 	pdf.SetFont("Arial", "B", 14)
 
 	xShift := float64(0)
 	files := make([]MeasurementFile, 5)
 
 	for _, file := range scan.MeasurementFiles {
-
 		if file.MeasurementType == "THERMAL" {
 			file.Label = "THERMAL (Absolute scale)"
 			files[1] = file
-
 		} else if file.MeasurementType == "DYNAMIC" {
 			file.Label = "THERMAL (Dynamic scale)"
 			files[2] = file
-
 		} else if file.MeasurementType == "STATISTIC" {
 			file.Label = "Histogram (Absolute scale)"
 			files[3] = file
-
 		} else if file.MeasurementType == "DYNAMIC_STATISTIC" {
 			file.Label = "Histogram (Dynamic scale)"
 			files[4] = file
-
 		} else if file.MeasurementType == "NORMAL" {
 			file.Label = file.MeasurementType
 			files[0] = file
-		} else {
-
 		}
 	}
 	for i := len(files) - 1; i >= 0; i-- {
@@ -3555,13 +3495,6 @@ func (c *PodiumController) createMeasurementPDF(scan Measurement, timeOffset int
 		}
 	}
 
-	/*	for _, file := range scan.MeasurementFiles {
-		// TODO Remove once RP wants it added again
-		//'NORMAL', 'THERMAL', 'REPORT', 'STATISTIC', 'DYNAMIC', 'T0', 'INPUT', 'FOOT_POSITIONING', 'DYNAMIC_STATISTIC'
-		if file.MeasurementType == "NORMAL" || file.MeasurementType == "THERMAL" || file.MeasurementType == "DYNAMIC" || file.MeasurementType == "STATISTIC" || file.MeasurementType == "DYNAMIC_STATISTIC" { // != "REPORT"
-			files = append(files, file)
-		}
-	}*/
 	pdf.SetFont("Arial", "B", 12)
 	for i, scanFile := range files {
 		if len(files) > 3 && i == 2 {
@@ -3575,109 +3508,6 @@ func (c *PodiumController) createMeasurementPDF(scan Measurement, timeOffset int
 	pdf.SetFont("Arial", "B", 14)
 	y += 65
 
-	if false {
-		pdf.Text(15, y, "Scan rating: ")
-		pdf.Image("icon_smiley_happy.png", 45, y-6, 8, 0, false, "", 0, "")
-		y += 10
-	}
-	questionnaire := &PatientQuestionnaire{}
-
-	c.ormDB.Set("gorm:auto_preload", true).Where("measurement_id =?", scan.ID).Find(&questionnaire)
-
-	setupQuestionnaire := &PatientQuestionnaire{}
-
-	c.ormDB.Debug().Set("gorm:auto_preload", true).Select("patient_questionnaires.*, ABS(TIMESTAMPDIFF(SECOND, ?, questionnaire_date)) as SecondsBetweenDates", scan.MeasurementDate).Where("questionnaire_date <= ?", scan.MeasurementDate).Where("patient_id = ?", scan.PatientId).Where("id IN (SELECT patient_questionnaire_id FROM patient_questionnaire_questions pqq LEFT JOIN question_templates qt ON pqq.template_question_id = qt.id WHERE qt.question_type = 1 AND pqq.answer_id > 0)").Order("SecondsBetweenDates ASC").First(&setupQuestionnaire)
-
-	_, maxY := pdf.GetPageSize()
-	if len(setupQuestionnaire.Questions) > 0 {
-		pdf.Text(15, y, "Setup-Questions")
-		y += 7
-		for i, q := range setupQuestionnaire.Questions {
-			pdf.SetFont("Arial", "", 11)
-			pdf.Text(15, y, fmt.Sprintf("SQ%d: %s", (i+1), q.TemplateQuestion.QuestionText))
-			pdf.SetFont("Arial", "B", 11)
-			pdf.Text(15, y+5, fmt.Sprintf("A%d: %s", (i+1), q.Answer.AnswerText))
-			y += 12
-
-			if y > maxY-20 {
-				pdf.AddPage()
-				y = 15
-			}
-		}
-	}
-
-	pdf.SetFont("Arial", "B", 14)
-	pdf.Text(15, y, "Questions")
-	y += 7
-	_, maxY = pdf.GetPageSize()
-	pageAdded := false
-	for i, q := range questionnaire.Questions {
-
-		pdf.SetFont("Arial", "", 11)
-		pdf.Text(15, y, fmt.Sprintf("Q%d: %s", (i+1), q.TemplateQuestion.QuestionText))
-		pdf.SetFont("Arial", "B", 11)
-		pdf.Text(15, y+5, fmt.Sprintf("A%d: %s", (i+1), q.Answer.AnswerText))
-		y += 12
-
-		if y > maxY-20 {
-			pdf.AddPage()
-			pageAdded = true
-			y = 15
-		}
-	}
-
-	annotations := Annotations{}
-
-	c.ormDB.Set("gorm:auto_preload", true).Where("measurement_id=?", scan.ID).Group("annotation_time").Find(&annotations)
-
-	for key, annotation := range annotations {
-		helperUser := HelperUser{}
-		helperUser.User = annotation.User
-		if c.isPatient(&annotation.User) {
-			helperUser.Patient = c.getPatient(&annotation.User)
-			//&helperUser.Patient.User = nil
-		} else if c.isDoctor(&annotation.User) {
-			helperUser.Doctor = c.getDoctor(&annotation.User)
-		} else if c.isPractice(&annotation.User) {
-			helperUser.Practice = c.getPractice(&annotation.User)
-		}
-
-		annotation.HelperUser = helperUser
-		annotations[key] = annotation
-	}
-
-	if !pageAdded {
-		pdf.AddPage()
-		y = 15
-	} else {
-		y += 15
-	}
-
-	pdf.SetFont("Arial", "B", 14)
-
-	y += 7
-	for _, annotation := range annotations {
-		pdf.SetFont("Arial", "", 11)
-		annotationUser := ""
-		if annotation.HelperUser.Doctor != nil {
-			annotationUser = annotation.HelperUser.Doctor.FirstName + " " + annotation.HelperUser.Doctor.LastName
-		} else if annotation.HelperUser.Patient != nil {
-			annotationUser = annotation.HelperUser.Patient.FirstName + " " + annotation.HelperUser.Patient.LastName
-		} else if annotation.HelperUser.Practice != nil {
-			annotationUser = annotation.HelperUser.Practice.Name
-		}
-
-		annotationTimestamp := annotation.AnnotationTime.Time.Unix()
-		annotationTimestamp = annotationTimestamp - timeOffset
-		annotation.AnnotationTime.Time = time.Unix(annotationTimestamp, 0)
-		
-
-		pdf.Text(15, y, fmt.Sprintf("%s - %s", annotation.AnnotationTime.Time.Format("02/01/2006")+" @ "+annotation.AnnotationTime.Time.Format("15:04"), annotationUser))
-		pdf.SetFont("Arial", "B", 11)
-		pdf.Text(15, y+5, fmt.Sprintf("%s", annotation.Content))
-		y += 12
-	}
-
 	fileName := fmt.Sprintf(tmpPath + fmt.Sprintf("exportScan%d.pdf", scan.ID))
 	err := pdf.OutputFileAndClose(fileName)
 	if err != nil {
@@ -3686,6 +3516,261 @@ func (c *PodiumController) createMeasurementPDF(scan Measurement, timeOffset int
 
 	return fileName
 }
+
+
+
+// func (c *PodiumController) createMeasurementPDF(scan Measurement, timeOffset int64) string {
+
+// 	//X tmpPath := "tmp/" + core.RandomString(10) + "/"
+// 	tmpPath := c.GetTmpUploadPath()
+// 	os.MkdirAll(tmpPath, 0777)
+
+// 	pdf := gofpdf.New("P", "mm", "A4", "")
+// 	pdf.SetAutoPageBreak(true, 20)
+
+// 	pdf.SetFooterFuncLpi(func(lastPage bool) {
+// 		pdf.SetY(-15)
+// 		pdf.SetFont("Arial", "I", 8)
+// 		pdf.CellFormat(0, 10, scan.Patient.FirstName+" "+scan.Patient.LastName+"", "", 0, "L", false, 0, "")
+// 		pdf.SetY(-12)
+// 		//pdf.CellFormat(0, 10, "Scan of "+scan.MeasurementDate.Time.Format("02/01/2006"), "", 0, "L", false, 0, "")
+// 		pdf.CellFormat(0, 10, "Scan on "+scan.MeasurementDate.Time.Format("02/01/2006")+" @ "+scan.MeasurementDate.Time.Format("15:04"), "", 0, "L", false, 0, "")
+
+// 		pdf.CellFormat(0, 10, fmt.Sprintf("Page %d of %d                            ", pdf.PageNo(), 2), "", 0, "C", false, 0, "")
+// 	})
+
+// 	pdf.AddPage()
+// 	pdf.SetFont("Arial", "B", 18)
+
+// 	pdf.Text(10, 15, "Scan on "+scan.MeasurementDate.Time.Format("02/01/2006")+" @ "+scan.MeasurementDate.Time.Format("15:04"))
+
+// 	//pdf.Image("logo_podium.png", 140, 3, 50, 0, false, "", 0, "")
+
+// 	x := 0.0
+// 	pdf.SetFont("Arial", "", 12)
+// 	y := 22.0
+// 	text := ""
+// 	if scan.Patient.LastName != "" {
+// 		if scan.Patient.FirstName != "" {
+// 			text += fmt.Sprintf("Patient: %s %s", scan.Patient.LastName, scan.Patient.FirstName)
+// 		} else {
+// 			text += fmt.Sprintf("Patient: %s", scan.Patient.LastName)
+// 		}
+// 	} else {
+// 		patientUser := core.User{}
+// 		c.ormDB.Set("gorm:auto_preload", true).First(&patientUser, scan.Patient.UserId)
+// 		text = fmt.Sprintf("Patient: %s", patientUser.Username)
+// 	}
+// 	if text != "" {
+// 		pdf.Text(10, y, text)
+// 		y += 6
+// 	}
+
+// 	text = ""
+// 	c.ormDB.Set("gorm:auto_preload", true).First(&scan.Patient, scan.PatientId)
+// 	if scan.DoctorId > 0 {
+// 		doc := Doctor{}
+// 		c.ormDB.Set("gorm:auto_preload", true).First(&doc, scan.DoctorId)
+// 		docName := ""
+// 		if doc.LastName != "" {
+// 			docName = fmt.Sprintf("%s %s", doc.FirstName, doc.LastName)
+// 		} else {
+// 			docUser := core.User{}
+// 			c.ormDB.Set("gorm:auto_preload", true).Where("id=(SELECT user_id FROM doctor_users WHERE doctor_id=?)", doc.ID).First(&docUser)
+// 			docName = docUser.Username
+// 		}
+// 		if text != "" {
+// 			text += fmt.Sprintf("scanned by Clinician: %s", docName)
+// 		} else {
+// 			text += fmt.Sprintf("scanned by Clinician: %s", docName)
+// 		}
+// 	}
+// 	if text != "" {
+// 		pdf.Text(10, y, text)
+// 		y += 6
+// 	}
+// 	text = ""
+// 	practice := Practice{}
+// 	c.ormDB.Set("gorm:auto_preload", true).Where("user_id=?", scan.UserId).First(&practice)
+// 	if practice.ID > 0 {
+// 		if practice.Name != "" {
+// 			text += fmt.Sprintf("at Practice: %s", practice.Name)
+// 		} else {
+// 			practiceUser := core.User{}
+// 			c.ormDB.Set("gorm:auto_preload", true).First(&practiceUser, practice.UserId)
+// 			text += fmt.Sprintf("at Practice: %s", practiceUser.Username)
+// 		}
+// 	}
+// 	if text != "" {
+// 		pdf.Text(10, y, text)
+// 		y += 6
+// 	}
+
+// 	y += 3
+
+	
+
+// 	pdf.SetFont("Arial", "B", 14)
+
+// 	xShift := float64(0)
+// 	files := make([]MeasurementFile, 5)
+
+// 	for _, file := range scan.MeasurementFiles {
+
+// 		if file.MeasurementType == "THERMAL" {
+// 			file.Label = "THERMAL (Absolute scale)"
+// 			files[1] = file
+
+// 		} else if file.MeasurementType == "DYNAMIC" {
+// 			file.Label = "THERMAL (Dynamic scale)"
+// 			files[2] = file
+
+// 		} else if file.MeasurementType == "STATISTIC" {
+// 			file.Label = "Histogram (Absolute scale)"
+// 			files[3] = file
+
+// 		} else if file.MeasurementType == "DYNAMIC_STATISTIC" {
+// 			file.Label = "Histogram (Dynamic scale)"
+// 			files[4] = file
+
+// 		} else if file.MeasurementType == "NORMAL" {
+// 			file.Label = file.MeasurementType
+// 			files[0] = file
+// 		} else {
+
+// 		}
+// 	}
+// 	for i := len(files) - 1; i >= 0; i-- {
+// 		_, err := os.Stat(files[i].GetAbsolutePath())
+// 		if files[i].ID == 0 || err != nil {
+// 			files = append(files[:i], files[i+1:]...)
+// 		}
+// 	}
+
+
+// 	pdf.SetFont("Arial", "B", 12)
+// 	for i, scanFile := range files {
+// 		if len(files) > 3 && i == 2 {
+// 			y += 65
+// 			xShift = -120
+// 		}
+// 		x = float64(10+60*i) + xShift
+// 		pdf.Text(x, y, strings.ReplaceAll(scanFile.Label, "_", " "))
+// 		pdf.Image(scanFile.GetAbsolutePath(), x, y+3, 50, 0, false, "", 0, "")
+// 	}
+// 	pdf.SetFont("Arial", "B", 14)
+// 	y += 65
+
+// 	if false {
+// 		pdf.Text(15, y, "Scan rating: ")
+// 		pdf.Image("icon_smiley_happy.png", 45, y-6, 8, 0, false, "", 0, "")
+// 		y += 10
+// 	}
+// 	questionnaire := &PatientQuestionnaire{}
+
+// 	c.ormDB.Set("gorm:auto_preload", true).Where("measurement_id =?", scan.ID).Find(&questionnaire)
+
+// 	setupQuestionnaire := &PatientQuestionnaire{}
+
+// 	c.ormDB.Debug().Set("gorm:auto_preload", true).Select("patient_questionnaires.*, ABS(TIMESTAMPDIFF(SECOND, ?, questionnaire_date)) as SecondsBetweenDates", scan.MeasurementDate).Where("questionnaire_date <= ?", scan.MeasurementDate).Where("patient_id = ?", scan.PatientId).Where("id IN (SELECT patient_questionnaire_id FROM patient_questionnaire_questions pqq LEFT JOIN question_templates qt ON pqq.template_question_id = qt.id WHERE qt.question_type = 1 AND pqq.answer_id > 0)").Order("SecondsBetweenDates ASC").First(&setupQuestionnaire)
+
+// 	_, maxY := pdf.GetPageSize()
+// 	if len(setupQuestionnaire.Questions) > 0 {
+// 		pdf.Text(15, y, "Setup-Questions")
+// 		y += 7
+// 		for i, q := range setupQuestionnaire.Questions {
+// 			pdf.SetFont("Arial", "", 11)
+// 			pdf.Text(15, y, fmt.Sprintf("SQ%d: %s", (i+1), q.TemplateQuestion.QuestionText))
+// 			pdf.SetFont("Arial", "B", 11)
+// 			pdf.Text(15, y+5, fmt.Sprintf("A%d: %s", (i+1), q.Answer.AnswerText))
+// 			y += 12
+
+// 			if y > maxY-20 {
+// 				pdf.AddPage()
+// 				y = 15
+// 			}
+// 		}
+// 	}
+
+// 	pdf.SetFont("Arial", "B", 14)
+// 	pdf.Text(15, y, "Questions")
+// 	y += 7
+// 	_, maxY = pdf.GetPageSize()
+// 	pageAdded := false
+// 	for i, q := range questionnaire.Questions {
+
+// 		pdf.SetFont("Arial", "", 11)
+// 		pdf.Text(15, y, fmt.Sprintf("Q%d: %s", (i+1), q.TemplateQuestion.QuestionText))
+// 		pdf.SetFont("Arial", "B", 11)
+// 		pdf.Text(15, y+5, fmt.Sprintf("A%d: %s", (i+1), q.Answer.AnswerText))
+// 		y += 12
+
+// 		if y > maxY-20 {
+// 			pdf.AddPage()
+// 			pageAdded = true
+// 			y = 15
+// 		}
+// 	}
+
+// 	annotations := Annotations{}
+
+// 	c.ormDB.Set("gorm:auto_preload", true).Where("measurement_id=?", scan.ID).Group("annotation_time").Find(&annotations)
+
+// 	for key, annotation := range annotations {
+// 		helperUser := HelperUser{}
+// 		helperUser.User = annotation.User
+// 		if c.isPatient(&annotation.User) {
+// 			helperUser.Patient = c.getPatient(&annotation.User)
+// 			//&helperUser.Patient.User = nil
+// 		} else if c.isDoctor(&annotation.User) {
+// 			helperUser.Doctor = c.getDoctor(&annotation.User)
+// 		} else if c.isPractice(&annotation.User) {
+// 			helperUser.Practice = c.getPractice(&annotation.User)
+// 		}
+
+// 		annotation.HelperUser = helperUser
+// 		annotations[key] = annotation
+// 	}
+
+// 	if !pageAdded {
+// 		pdf.AddPage()
+// 		y = 15
+// 	} else {
+// 		y += 15
+// 	}
+
+// 	pdf.SetFont("Arial", "B", 14)
+
+// 	y += 7
+// 	for _, annotation := range annotations {
+// 		pdf.SetFont("Arial", "", 11)
+// 		annotationUser := ""
+// 		if annotation.HelperUser.Doctor != nil {
+// 			annotationUser = annotation.HelperUser.Doctor.FirstName + " " + annotation.HelperUser.Doctor.LastName
+// 		} else if annotation.HelperUser.Patient != nil {
+// 			annotationUser = annotation.HelperUser.Patient.FirstName + " " + annotation.HelperUser.Patient.LastName
+// 		} else if annotation.HelperUser.Practice != nil {
+// 			annotationUser = annotation.HelperUser.Practice.Name
+// 		}
+
+// 		annotationTimestamp := annotation.AnnotationTime.Time.Unix()
+// 		annotationTimestamp = annotationTimestamp - timeOffset
+// 		annotation.AnnotationTime.Time = time.Unix(annotationTimestamp, 0)
+
+// 		pdf.Text(15, y, fmt.Sprintf("%s - %s", annotation.AnnotationTime.Time.Format("02/01/2006")+" @ "+annotation.AnnotationTime.Time.Format("15:04"), annotationUser))
+// 		pdf.SetFont("Arial", "B", 11)
+// 		pdf.Text(15, y+5, fmt.Sprintf("%s", annotation.Content))
+// 		y += 12
+// 	}
+
+// 	fileName := fmt.Sprintf(tmpPath + fmt.Sprintf("exportScan%d.pdf", scan.ID))
+// 	err := pdf.OutputFileAndClose(fileName)
+// 	if err != nil {
+// 		log.Println(err)
+// 	}
+
+// 	return fileName
+// }
 
 // DeleteChatMessage swagger:route DELETE /me/conversations/{userId} chats deleteChatMessage
 //
