@@ -354,6 +354,45 @@ will download the cover letter
 
 
 
+     POST NOTES API
+---------------------------
+
+http://localhost:4001/api/v1/save-notes
+
+body : {
+    "patient_id": "123",
+    "measurement_id": "456",
+    "notes": "This is a test note"
+}
+
+
+response :Data saved successfully
+
+
+will insert data into DB notes table
+
+
+
+
+
+      GET NOTES API
+-----------------------------
+http://localhost:4001/api/v1/get-notes/456
+
+
+response :
+
+[
+    {
+        "patient_id": "123",
+        "measurement_id": "456",
+        "notes": "This is a test note",
+        "CreatedAt": "0001-01-01T00:00:00Z"
+    }
+]
+
+
+
 
 
 

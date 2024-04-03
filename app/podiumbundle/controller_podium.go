@@ -50,6 +50,8 @@ func NewPodiumController(ormDB *gorm.DB, users *map[string]core.User) *PodiumCon
 		ormDB.AutoMigrate(&DeviceSystemVersionType{}, &DeviceSystemVersion{})
 		ormDB.AutoMigrate(&PatientImages{})
 		ormDB.AutoMigrate(&CoverLetter{})
+		ormDB.AutoMigrate(&notes{})
+		
 
 		c.insertRiskDefinitions()
 		c.insertAppointmentStatusDefs()
@@ -1617,6 +1619,117 @@ func (c *PodiumController) ScanHistory(w http.ResponseWriter, r *http.Request) {
 //ispl_KTH_14/2/2024
 
 //new codeeeeeeeeeeeeeeeeee
+
+
+
+//ispl_KTH_03/3/2024
+
+
+
+func (c *PodiumController) GetNotesByMeasurementIDHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+    measurementID := vars["MeasurementID"]
+    notes, err := c.getNotesByMeasurementID(measurementID)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    // Convert notes to JSON and send response
+    jsonResponse, err := json.Marshal(notes)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    w.Write(jsonResponse)
+}
+
+func (c *PodiumController) getNotesByMeasurementID(measurementID string) ([]notes, error) {
+
+    var notes []notes
+
+    // Retrieve notes from the database based on the measurement ID
+    if err := c.ormDB.Where("measurement_id = ?", measurementID).Find(&notes).Error; err != nil {
+        return nil, err
+    }
+	fmt.Print(">>>>>>>>>>>>",measurementID)
+    return notes, nil
+}
+
+
+
+
+
+func (c *PodiumController) SaveNotes(w http.ResponseWriter, r *http.Request) {
+    // Parse JSON request body
+    var requestBody notes
+    err := json.NewDecoder(r.Body).Decode(&requestBody)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+    }
+
+    // Save data to the database
+    if err := c.saveDataToDB(requestBody.MeasurementID, requestBody.PatientID, requestBody.Notes); err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    // Return success response
+    w.WriteHeader(http.StatusOK)
+    w.Write([]byte("Data saved successfully"))
+}
+
+func (c *PodiumController) saveDataToDB(measurementID string, patientID string, notes string) error {
+	// Assuming you have an active database connection (ormDB) before calling this function
+
+	// Define your database model struct here if not already defined
+	type note struct {
+		MeasurementID string `gorm:"column:measurement_id"`
+		PatientID     string `gorm:"column:patient_id"`
+		Notes         string `gorm:"column:notes"`
+	}
+
+	// Check if a record already exists for the given measurement ID
+	existingData := note{}
+	err := c.ormDB.Where("measurement_id = ?", measurementID).First(&existingData).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+
+	// Create or update the record
+	newData := note{
+		MeasurementID: measurementID,
+		PatientID:     patientID,
+		Notes:         notes,
+	}
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		// If the record doesn't exist, create it
+		if err := c.ormDB.Create(&newData).Error; err != nil {
+			return err
+		}
+	} else {
+		// If the record exists, update it
+		if err := c.ormDB.Model(&newData).Where("measurement_id = ?", measurementID).Updates(&newData).Error; err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+//ispl_KTH_03/3/2024
+
+
+
+
+
+
+
+
 
 func (c *PodiumController) SaveCoverLetter(w http.ResponseWriter, r *http.Request) {
 	// Parse form data

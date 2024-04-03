@@ -220,6 +220,8 @@ func NewPodiumBundle(ormDB *gorm.DB, users *map[string]core.User) core.Bundle {
 		core.Route{Method: http.MethodPost,Path:  "/cover-letter",Handler: hc.SaveCoverLetter},
 		core.Route{Method: http.MethodGet,Path:  "/get-cover-letter/{MeasurementID}",Handler: hc.GetCoverLetter},
 		core.Route{Method:  http.MethodGet,Path: "/download-cover-letter/{filepath}",Handler: hc.serveCoverLetterHandler},
+		core.Route{Method: http.MethodPost,Path:  "/save-notes",Handler: hc.SaveNotes},
+		core.Route{Method: http.MethodGet,Path:  "/get-notes/{MeasurementID}",Handler: hc.GetNotesByMeasurementIDHandler},
 		
 		//ispl_KTH_14/2/2024
 
