@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"github.com/jung-kurt/gofpdf"
-	//	"gotools/tools"
+//	"gotools/tools"
 	tools "github.com/kirillDanshin/nulltime"
 	"io"
 	"io/ioutil"
@@ -40,19 +40,17 @@ func (c *PodiumController) GetMeasurementsTableConfigHandler(w http.ResponseWrit
 //
 // produces:
 // - application/json
-//   - name: Authorization
-//     in: header
-//     description: "Bearer " + token
-//     required: true
-//     type: string
-//
+//	+ name: Authorization
+//    in: header
+//    description: "Bearer " + token
+//    required: true
+//    type: string
 // Responses:
-//
-//	   default: HandleErrorData
-//			  200:
-//				data: []Measurement
-//	       401: HandleErrorData "unauthorized"
-//	       403: HandleErrorData "no Permission"
+//    default: HandleErrorData
+//		  200:
+//			data: []Measurement
+//        401: HandleErrorData "unauthorized"
+//        403: HandleErrorData "no Permission"
 func (c *PodiumController) GetMeasurementsHandler(w http.ResponseWriter, r *http.Request) {
 	ok := false
 	var user *core.User
@@ -687,19 +685,17 @@ func (c *PodiumController) GetMeasurementImagesNextHandler(w http.ResponseWriter
 //
 // produces:
 // - application/json
-//   - name: Authorization
-//     in: header
-//     description: "Bearer " + token
-//     required: true
-//     type: string
-//
+//	+ name: Authorization
+//    in: header
+//    description: "Bearer " + token
+//    required: true
+//    type: string
 // Responses:
-//
-//	   default: HandleErrorData
-//			  200:
-//				data: []Measurement
-//	       401: HandleErrorData "unauthorized"
-//	       403: HandleErrorData "no Permission"
+//    default: HandleErrorData
+//		  200:
+//			data: []Measurement
+//        401: HandleErrorData "unauthorized"
+//        403: HandleErrorData "no Permission"
 func (c *PodiumController) GetMeasurementImagesNavigation(w http.ResponseWriter, r *http.Request, navigationType string) {
 	ok := false
 	var user *core.User
@@ -826,19 +822,17 @@ func (c *PodiumController) GetMeasurementImagesNavigation(w http.ResponseWriter,
 //
 // produces:
 // - application/json
-//   - name: Authorization
-//     in: header
-//     description: "Bearer " + token
-//     required: true
-//     type: string
-//
+//	+ name: Authorization
+//    in: header
+//    description: "Bearer " + token
+//    required: true
+//    type: string
 // Responses:
-//
-//	   default: HandleErrorData
-//			  200:
-//				data: []Measurement
-//	       401: HandleErrorData "unauthorized"
-//	       403: HandleErrorData "no Permission"
+//    default: HandleErrorData
+//		  200:
+//			data: []Measurement
+//        401: HandleErrorData "unauthorized"
+//        403: HandleErrorData "no Permission"
 func (c *PodiumController) GetMeasurementNavigation(w http.ResponseWriter, r *http.Request, navigationType string) {
 	ok := false
 	var user *core.User
@@ -1378,29 +1372,29 @@ func (c *PodiumController) CreateWhereConditionsMeasurements(urlQuery url.Values
 				if len(data) > 1 {
 					switch strings.ToLower(data[0]) {
 					/*
-						case "measurement_from":
-							var measurementFrom tools.NullTime
-							measurementFrom.FromString(data[1])
+					case "measurement_from":
+						var measurementFrom tools.NullTime
+						measurementFrom.FromString(data[1])
 
-							/*	if measurementFrom.Valid {
-								db = db.Where("YEAR(measurement_date) >= YEAR(?) AND MONTH(measurement_date) >= MONTH(?) AND DAY(measurement_date) >= DAY(?) AND HOUR(measurement_date) >= 0 AND MINUTE(measurement_date) >= 0", data[1], data[1], data[1])
-								dbTotalCount = dbTotalCount.Where("YEAR(measurement_date) >= YEAR(?) AND MONTH(measurement_date) >= MONTH(?) AND DAY(measurement_date) >= DAY(?) AND HOUR(measurement_date) >= 0 AND MINUTE(measurement_date) >= 0", data[1], data[1], data[1])
-							}
-							if measurementFrom.Valid {
-								db = db.Where("measurement_date >= ?", measurementFrom)
-								dbTotalCount = dbTotalCount.Where("measurement_date >= ?", measurementFrom)
-							}
-						case "measurement_to":
-							var measurementTo tools.NullTime
-							measurementTo.FromString(data[1])
-							/*if measurementTo.Valid {
-								db = db.Where("YEAR(measurement_date) <= YEAR(?) AND MONTH(measurement_date) <= MONTH(?) AND DAY(measurement_date) <= DAY(?) AND HOUR(measurement_date) < 24 AND MINUTE(measurement_date) < 60", data[1], data[1], data[1])
-								dbTotalCount = dbTotalCount.Where("YEAR(measurement_date) <= YEAR(?) AND MONTH(measurement_date) <= MONTH(?) AND DAY(measurement_date) <= DAY(?) AND HOUR(measurement_date) < 24 AND MINUTE(measurement_date) < 60", data[1], data[1], data[1])
-							}
-							if measurementTo.Valid {
-								db = db.Where("DATE(measurement_date) <= DATE(?)", measurementTo)
-								dbTotalCount = dbTotalCount.Where("DATE(measurement_date) <= DATE(?)", measurementTo)
-							}
+						/*	if measurementFrom.Valid {
+							db = db.Where("YEAR(measurement_date) >= YEAR(?) AND MONTH(measurement_date) >= MONTH(?) AND DAY(measurement_date) >= DAY(?) AND HOUR(measurement_date) >= 0 AND MINUTE(measurement_date) >= 0", data[1], data[1], data[1])
+							dbTotalCount = dbTotalCount.Where("YEAR(measurement_date) >= YEAR(?) AND MONTH(measurement_date) >= MONTH(?) AND DAY(measurement_date) >= DAY(?) AND HOUR(measurement_date) >= 0 AND MINUTE(measurement_date) >= 0", data[1], data[1], data[1])
+						}
+						if measurementFrom.Valid {
+							db = db.Where("measurement_date >= ?", measurementFrom)
+							dbTotalCount = dbTotalCount.Where("measurement_date >= ?", measurementFrom)
+						}
+					case "measurement_to":
+						var measurementTo tools.NullTime
+						measurementTo.FromString(data[1])
+						/*if measurementTo.Valid {
+							db = db.Where("YEAR(measurement_date) <= YEAR(?) AND MONTH(measurement_date) <= MONTH(?) AND DAY(measurement_date) <= DAY(?) AND HOUR(measurement_date) < 24 AND MINUTE(measurement_date) < 60", data[1], data[1], data[1])
+							dbTotalCount = dbTotalCount.Where("YEAR(measurement_date) <= YEAR(?) AND MONTH(measurement_date) <= MONTH(?) AND DAY(measurement_date) <= DAY(?) AND HOUR(measurement_date) < 24 AND MINUTE(measurement_date) < 60", data[1], data[1], data[1])
+						}
+						if measurementTo.Valid {
+							db = db.Where("DATE(measurement_date) <= DATE(?)", measurementTo)
+							dbTotalCount = dbTotalCount.Where("DATE(measurement_date) <= DATE(?)", measurementTo)
+						}
 					*/
 					case "user_practices", "user_doctors", "user_patients", "practices", "doctors", "patients", "measurement":
 						tmpFilters[data[0]] = append(tmpFilters[data[0]], data[1])
@@ -1541,19 +1535,17 @@ func (c *PodiumController) CreateWhereConditionsMeasurements(urlQuery url.Values
 //
 // produces:
 // - application/json
-//   - name: Authorization
-//     in: header
-//     description: "Bearer " + token
-//     required: true
-//     type: string
-//
+//	+ name: Authorization
+//    in: header
+//    description: "Bearer " + token
+//    required: true
+//    type: string
 // Responses:
-//
-//	   default: HandleErrorData
-//			  200:
-//				data: []Measurement
-//	       401: HandleErrorData "unauthorized"
-//	       403: HandleErrorData "no Permission"
+//    default: HandleErrorData
+//		  200:
+//			data: []Measurement
+//        401: HandleErrorData "unauthorized"
+//        403: HandleErrorData "no Permission"
 func (c *PodiumController) GetMeasurementsWithStatusRedHandler(w http.ResponseWriter, r *http.Request) {
 	ok := false
 	var user *core.User
@@ -1588,19 +1580,17 @@ func (c *PodiumController) GetMeasurementsWithStatusRedHandler(w http.ResponseWr
 //
 // produces:
 // - application/json
-//   - name: Authorization
-//     in: header
-//     description: "Bearer " + token
-//     required: true
-//     type: string
-//
+//	+ name: Authorization
+//    in: header
+//    description: "Bearer " + token
+//    required: true
+//    type: string
 // Responses:
-//
-//	   default: HandleErrorData
-//			  200:
-//				data: []Measurement
-//	       401: HandleErrorData "unauthorized"
-//	       403: HandleErrorData "no Permission"
+//    default: HandleErrorData
+//		  200:
+//			data: []Measurement
+//        401: HandleErrorData "unauthorized"
+//        403: HandleErrorData "no Permission"
 func (c *PodiumController) GetMeasurementsWithStatusBlueHandler(w http.ResponseWriter, r *http.Request) {
 	ok := false
 	var user *core.User
@@ -1635,19 +1625,17 @@ func (c *PodiumController) GetMeasurementsWithStatusBlueHandler(w http.ResponseW
 //
 // produces:
 // - application/json
-//   - name: Authorization
-//     in: header
-//     description: "Bearer " + token
-//     required: true
-//     type: string
-//
+//	+ name: Authorization
+//    in: header
+//    description: "Bearer " + token
+//    required: true
+//    type: string
 // Responses:
-//
-//	   default: HandleErrorData
-//			  200:
-//				data: []Measurement
-//	       401: HandleErrorData "unauthorized"
-//	       403: HandleErrorData "no Permission"
+//    default: HandleErrorData
+//		  200:
+//			data: []Measurement
+//        401: HandleErrorData "unauthorized"
+//        403: HandleErrorData "no Permission"
 func (c *PodiumController) GetMeasurementsWithStatusRedBlueHandler(w http.ResponseWriter, r *http.Request) {
 	ok := false
 	var user *core.User
@@ -1682,19 +1670,17 @@ func (c *PodiumController) GetMeasurementsWithStatusRedBlueHandler(w http.Respon
 //
 // produces:
 // - application/json
-//   - name: Authorization
-//     in: header
-//     description: "Bearer " + token
-//     required: true
-//     type: string
-//
+//	+ name: Authorization
+//    in: header
+//    description: "Bearer " + token
+//    required: true
+//    type: string
 // Responses:
-//
-//	   default: HandleErrorData
-//			  200:
-//				data: []Measurement
-//	       401: HandleErrorData "unauthorized"
-//	       403: HandleErrorData "no Permission"
+//    default: HandleErrorData
+//		  200:
+//			data: []Measurement
+//        401: HandleErrorData "unauthorized"
+//        403: HandleErrorData "no Permission"
 func (c *PodiumController) GetMeasurementsForPatientHandler(w http.ResponseWriter, r *http.Request) {
 	ok := false
 	var user *core.User
@@ -1727,19 +1713,17 @@ func (c *PodiumController) GetMeasurementsForPatientHandler(w http.ResponseWrite
 //
 // produces:
 // - application/json
-//   - name: Authorization
-//     in: header
-//     description: "Bearer " + token
-//     required: true
-//     type: string
-//
+//	+ name: Authorization
+//    in: header
+//    description: "Bearer " + token
+//    required: true
+//    type: string
 // Responses:
-//
-//	   default: HandleErrorData
-//			  200:
-//				data: Measurement
-//	       401: HandleErrorData "unauthorized"
-//	       403: HandleErrorData "no Permission"
+//    default: HandleErrorData
+//		  200:
+//			data: Measurement
+//        401: HandleErrorData "unauthorized"
+//        403: HandleErrorData "no Permission"
 func (c *PodiumController) GetMeasurementHandler(w http.ResponseWriter, r *http.Request) {
 	ok := false
 	var user *core.User
@@ -1783,18 +1767,16 @@ func (c *PodiumController) GetMeasurementHandler(w http.ResponseWriter, r *http.
 //
 // produces:
 // - application/json
-//   - name: Authorization
-//     in: header
-//     description: "Bearer " + token
-//     required: true
-//     type: string
-//
+//	+ name: Authorization
+//    in: header
+//    description: "Bearer " + token
+//    required: true
+//    type: string
 // Responses:
-//
-//	   default: HandleErrorData
-//			  200:
-//	       401: HandleErrorData "unauthorized"
-//	       403: HandleErrorData "no Permission"
+//    default: HandleErrorData
+//		  200:
+//        401: HandleErrorData "unauthorized"
+//        403: HandleErrorData "no Permission"
 func (c *PodiumController) DeleteMeasurementHandler(w http.ResponseWriter, r *http.Request) {
 	//TODO SM TEST
 	ok := false
@@ -1878,19 +1860,17 @@ func (c *PodiumController) DeleteMeasurementHandler(w http.ResponseWriter, r *ht
 //
 // produces:
 // - application/json
-//   - name: Authorization
-//     in: header
-//     description: "Bearer " + token
-//     required: true
-//     type: string
-//
+//	+ name: Authorization
+//    in: header
+//    description: "Bearer " + token
+//    required: true
+//    type: string
 // Responses:
-//
-//	   default: HandleErrorData
-//			  200:
-//				data: Measurement
-//	       401: HandleErrorData "unauthorized"
-//	       403: HandleErrorData "no Permission"
+//    default: HandleErrorData
+//		  200:
+//			data: Measurement
+//        401: HandleErrorData "unauthorized"
+//        403: HandleErrorData "no Permission"
 func (c *PodiumController) GetMeasurementFileHandler(w http.ResponseWriter, r *http.Request) {
 	ok := false
 	var user *core.User
@@ -1935,8 +1915,8 @@ func (c *PodiumController) GetMeasurementFileHandler(w http.ResponseWriter, r *h
 				http.ServeFile(w, r, file.GetAbsolutePath())
 				return
 			}
-		}
-	}
+		}                         
+	}				
 	c.HandleErrorWithStatus(errors.New("File not found"), w, http.StatusNotFound)
 }
 
@@ -1964,7 +1944,7 @@ func (c *PodiumController) GetMeasurementsFilesHandler(w http.ResponseWriter, r 
 		return
 	}
 
-	now := tools.NullTime{Time: time.Now(), Valid: true}
+	now := tools.NullTime { Time: time.Now(), Valid: true }
 	filePrefix := fmt.Sprintf(`measurement_images_%v.%v.%v`, now.Time.Day(), int(now.Time.Month()), now.Time.Year())
 	fileNames := []string{}
 
@@ -2258,7 +2238,7 @@ func (c *PodiumController) RetrieveMeasurementHandler(w http.ResponseWriter, r *
 		questionnaire := PatientQuestionnaire{}
 		c.ormDB.Set("gorm:auto_preload", true).Where("measurement_id = ? AND patient_id = ?", measurementDB.ID, patient.ID).First(&questionnaire)
 		measurementDB.Questionnaire = &questionnaire
-
+			
 		if c.isPractice(user) {
 			dailyQuestionnaire := PatientQuestionnaire{}
 			c.ormDB.Debug().Set("gorm:auto_preload", true).Where("measurement_id = 0").Where("patient_id = ?", measurementDB.PatientId).Where("DATE(questionnaire_date) = DATE(?)", measurementDB.MeasurementDate).Where("id IN (SELECT pqq.patient_questionnaire_id FROM patient_questionnaire_questions pqq LEFT JOIN question_templates qt ON pqq.template_question_id = qt.id WHERE pqq.answer_id = 0 AND qt.recurring_rule IN ('DAILY', 'WEEKLY', 'MONTHLY'))").Order("id desc").First(&dailyQuestionnaire)
@@ -2735,19 +2715,17 @@ func (c *PodiumController) SetIsTenMinsApart(measurement Measurement, user *core
 //
 // produces:
 // - application/json
-//   - name: Authorization
-//     in: header
-//     description: "Bearer " + token
-//     required: true
-//     type: string
-//
+//	+ name: Authorization
+//    in: header
+//    description: "Bearer " + token
+//    required: true
+//    type: string
 // Responses:
-//
-//	   default: HandleErrorData
-//			  200:
-//				data: []Annotation
-//	       401: HandleErrorData "unauthorized"
-//	       403: HandleErrorData "no Permission"
+//    default: HandleErrorData
+//		  200:
+//			data: []Annotation
+//        401: HandleErrorData "unauthorized"
+//        403: HandleErrorData "no Permission"
 func (c *PodiumController) GetAnnotationsForMeasurementHandler(w http.ResponseWriter, r *http.Request) {
 	ok := false
 	var user *core.User
@@ -2806,18 +2784,16 @@ func (c *PodiumController) GetAnnotationsForMeasurementHandler(w http.ResponseWr
 //
 // produces:
 // - application/json
-//   - name: Authorization
-//     in: header
-//     description: "Bearer " + token
-//     required: true
-//     type: string
-//
+//	+ name: Authorization
+//    in: header
+//    description: "Bearer " + token
+//    required: true
+//    type: string
 // Responses:
-//
-//	   default: HandleErrorData
-//			  200:
-//	       401: HandleErrorData "unauthorized"
-//	       403: HandleErrorData "no Permission"
+//    default: HandleErrorData
+//		  200:
+//        401: HandleErrorData "unauthorized"
+//        403: HandleErrorData "no Permission"
 func (c *PodiumController) DeleteAnnotationForMeasurementHandler(w http.ResponseWriter, r *http.Request) {
 	ok := false
 	var user *core.User
@@ -2868,19 +2844,17 @@ func (c *PodiumController) DeleteAnnotationForMeasurementHandler(w http.Response
 //
 // produces:
 // - application/json
-//   - name: Authorization
-//     in: header
-//     description: "Bearer " + token
-//     required: true
-//     type: string
-//
+//	+ name: Authorization
+//    in: header
+//    description: "Bearer " + token
+//    required: true
+//    type: string
 // Responses:
-//
-//	   default: HandleErrorData
-//			  200:
-//				data: Message
-//	       401: HandleErrorData "unauthorized"
-//	       403: HandleErrorData "no Permission"
+//    default: HandleErrorData
+//		  200:
+//			data: Message
+//        401: HandleErrorData "unauthorized"
+//        403: HandleErrorData "no Permission"
 func (c *PodiumController) SaveAnnotationForMeasurementHandler(w http.ResponseWriter, r *http.Request) {
 	ok := false
 	var user *core.User
@@ -2976,18 +2950,16 @@ func (c *PodiumController) SaveAnnotationForMeasurementHandler(w http.ResponseWr
 //
 // produces:
 // - application/json
-//   - name: Authorization
-//     in: header
-//     description: "Bearer " + token
-//     required: true
-//     type: string
-//
+//	+ name: Authorization
+//    in: header
+//    description: "Bearer " + token
+//    required: true
+//    type: string
 // Responses:
-//
-//	   default: HandleErrorData
-//			  200:
-//	       401: HandleErrorData "unauthorized"
-//	       403: HandleErrorData "no Permission"
+//    default: HandleErrorData
+//		  200:
+//        401: HandleErrorData "unauthorized"
+//        403: HandleErrorData "no Permission"
 func (c *PodiumController) ShareMeasurementHandler(w http.ResponseWriter, r *http.Request) {
 	ok := false
 	var user *core.User
@@ -3021,18 +2993,16 @@ func (c *PodiumController) ShareMeasurementHandler(w http.ResponseWriter, r *htt
 //
 // produces:
 // - application/json
-//   - name: Authorization
-//     in: header
-//     description: "Bearer " + token
-//     required: true
-//     type: string
-//
+//	+ name: Authorization
+//    in: header
+//    description: "Bearer " + token
+//    required: true
+//    type: string
 // Responses:
-//
-//	   default: HandleErrorData
-//			  200:
-//	       401: HandleErrorData "unauthorized"
-//	       403: HandleErrorData "no Permission"
+//    default: HandleErrorData
+//		  200:
+//        401: HandleErrorData "unauthorized"
+//        403: HandleErrorData "no Permission"
 func (c *PodiumController) DeleteSharedMeasurementHandler(w http.ResponseWriter, r *http.Request) {
 	ok := false
 	var user *core.User
@@ -3072,18 +3042,16 @@ func (c *PodiumController) DeleteSharedMeasurementHandler(w http.ResponseWriter,
 //
 // produces:
 // - application/json
-//   - name: Authorization
-//     in: header
-//     description: "Bearer " + token
-//     required: true
-//     type: string
-//
+//	+ name: Authorization
+//    in: header
+//    description: "Bearer " + token
+//    required: true
+//    type: string
 // Responses:
-//
-//	   default: HandleErrorData
-//			  200:
-//	       401: HandleErrorData "unauthorized"
-//	       403: HandleErrorData "no Permission"
+//    default: HandleErrorData
+//		  200:
+//        401: HandleErrorData "unauthorized"
+//        403: HandleErrorData "no Permission"
 func (c *PodiumController) ToggleMeasurementFavoriteHandler(w http.ResponseWriter, r *http.Request) {
 	ok := false
 	var user *core.User
@@ -3174,75 +3142,73 @@ func DateEqual(date1, date2 time.Time) bool {
 	return y1 == y2 && m1 == m2 && d1 == d2
 }
 
-func (c *PodiumController) ExportMeasurementHandler(w http.ResponseWriter, r *http.Request) {
-	println("ExportMeasurementHandler", r.URL.Path)
-	ok := false
-	var user *core.User
-	if ok, user = c.GetUser(w, r); !ok {
-		_ = user
-		return
-	}
+func (c *PodiumController) 	ExportMeasurementHandler(w http.ResponseWriter, r *http.Request) {
+    println("ExportMeasurementHandler", r.URL.Path)
+    ok := false
+    var user *core.User
+    if ok, user = c.GetUser(w, r); !ok {
+        _ = user
+        return
+    }
 
-	vars := mux.Vars(r)
-	measurementId, _ := strconv.ParseInt(vars["measurementId"], 10, 64)
+    vars := mux.Vars(r)
+    measurementId, _ := strconv.ParseInt(vars["measurementId"], 10, 64)
 
-	// Print statement to check measurement ID
-	fmt.Println("Measurement ID:", measurementId)
+    // Print statement to check measurement ID
+    fmt.Println("Measurement ID:", measurementId)
 
-	timeOffset := int64(0)
-	hTimeOffset := r.Header["X-Timezone-Offset"]
-	log.Println(hTimeOffset)
-	if len(hTimeOffset) > 0 {
-		tmp, err := strconv.Atoi(hTimeOffset[0])
-		if err == nil {
-			timeOffset = int64(tmp) * 60
-		}
-	}
+    timeOffset := int64(0)
+    hTimeOffset := r.Header["X-Timezone-Offset"]
+    log.Println(hTimeOffset)
+    if len(hTimeOffset) > 0 {
+        tmp, err := strconv.Atoi(hTimeOffset[0])
+        if err == nil {
+            timeOffset = int64(tmp) * 60
+        }
+    }
 
-	measurement := Measurement{}
+    measurement := Measurement{}
 
-	if c.isPatient(user) {
-		patient := c.getPatient(user)
-		c.ormDB.Set("gorm:auto_preload", true).Where("patient_id = ?", patient.ID).First(&measurement, measurementId)
-	} else if c.isDoctor(user) {
-		doctor := c.getDoctor(user)
-		practice := doctor.GetPractice(c.ormDB)
-		c.ormDB.Set("gorm:auto_preload", true).Where("patient_id IN (SELECT patient_id FROM doctor_patient_relations WHERE doctor_id IN (SELECT doctor_id FROM practice_doctors WHERE practice_id = ?) AND consent_status>=2)", practice.ID).First(&measurement, measurementId)
-	} else if c.isPractice(user) {
-		practice := c.getPractice(user)
-		c.ormDB.Set("gorm:auto_preload", true).Where("patient_id IN (SELECT patient_id FROM doctor_patient_relations WHERE doctor_id IN (SELECT doctor_id FROM practice_doctors WHERE practice_id = ?) AND consent_status>=2)", practice.ID).First(&measurement, measurementId)
-	} else if user.UserType == 0 {
-		c.ormDB.Set("gorm:auto_preload", true).First(&measurement, measurementId)
-	}
+    if c.isPatient(user) {
+        patient := c.getPatient(user)
+        c.ormDB.Set("gorm:auto_preload", true).Where("patient_id = ?", patient.ID).First(&measurement, measurementId)
+    } else if c.isDoctor(user) {
+        doctor := c.getDoctor(user)
 
-	// Print statement to check measurement data after retrieval
-	fmt.Println("Measurement:", measurement)
+        practice := doctor.GetPractice(c.ormDB)
+        c.ormDB.Set("gorm:auto_preload", true).Where("patient_id IN (SELECT patient_id FROM doctor_patient_relations WHERE doctor_id IN (SELECT doctor_id FROM practice_doctors WHERE practice_id = ?) AND consent_status>=2)", practice.ID).First(&measurement, measurementId)
+    } else if c.isPractice(user) {
+        practice := c.getPractice(user)
+        c.ormDB.Set("gorm:auto_preload", true).Where("patient_id IN (SELECT patient_id FROM doctor_patient_relations WHERE doctor_id IN (SELECT doctor_id FROM practice_doctors WHERE practice_id = ?) AND consent_status>=2)", practice.ID).First(&measurement, measurementId)
+    } else if user.UserType == 0 {
+        c.ormDB.Set("gorm:auto_preload", true).First(&measurement, measurementId)
+    }
 
-	c.ormDB.Set("gorm:auto_preload", true).First(&measurement.Patient, measurement.PatientId)
+    c.ormDB.Set("gorm:auto_preload", true).First(&measurement.Patient, measurement.PatientId)
 
-	if measurement.MeasurementFiles == nil {
-		measurement.MeasurementFiles = make([]MeasurementFile, 0)
-	}
+    if measurement.MeasurementFiles == nil {
+        measurement.MeasurementFiles = make([]MeasurementFile, 0)
+    }
 
-	// Print statement to check measurement data before PDF creation
-	fmt.Println("Measurement before PDF creation:", measurement)
+    // Print statement to check measurement data before PDF creation
+    fmt.Println("Measurement before PDF creation:", measurement)
 
-	timestamp := measurement.MeasurementDate.Time.Unix()
-	timestamp = timestamp - timeOffset
+    timestamp := measurement.MeasurementDate.Time.Unix()
+    timestamp = timestamp - timeOffset
 
-	measurement.MeasurementDate.Time = time.Unix(timestamp, 0)
-	fileName := c.createMeasurementPDF(measurement, timeOffset)
+    measurement.MeasurementDate.Time = time.Unix(timestamp, 0)
+    fileName := c.createMeasurementPDF(measurement, timeOffset)
 
-	log.Println(fileName)
+    log.Println(fileName)
 
-	// Print statement to check the file name created for the PDF
-	fmt.Println("PDF File Name:", fileName)
+    // Print statement to check the file name created for the PDF
+    fmt.Println("PDF File Name:", fileName)
 
-	w.Header().Set("Content-Disposition", `inline; filename="Scan `+strconv.Itoa(int(measurement.ID))+`.pdf"`)
-	w.Header().Set("Content-Type", "application/pdf")
-	w.Header().Add("Access-Control-Allow-Origin", "*")
+    w.Header().Set("Content-Disposition", `inline; filename="Scan `+strconv.Itoa(int(measurement.ID))+`.pdf"`)
+    w.Header().Set("Content-Type", "application/pdf")
+    w.Header().Add("Access-Control-Allow-Origin", "*")
 
-	http.ServeFile(w, r, fileName)
+    http.ServeFile(w, r, fileName)
 }
 
 type HelperSendMail struct {
@@ -3383,6 +3349,7 @@ func parseAddresses(addresses []string) []string {
 
 
 
+
 func (c *PodiumController) createMeasurementPDF(scan Measurement, timeOffset int64) string {
 	tmpPath := c.GetTmpUploadPath()
 	os.MkdirAll(tmpPath, 0777)
@@ -3407,6 +3374,8 @@ func (c *PodiumController) createMeasurementPDF(scan Measurement, timeOffset int
 	pdf.SetFont("Arial", "", 12)
 	y := 22.0
 	text := ""
+
+	// Add patient information
 	if scan.Patient.LastName != "" {
 		if scan.Patient.FirstName != "" {
 			text += fmt.Sprintf("Patient: %s %s", scan.Patient.LastName, scan.Patient.FirstName)
@@ -3414,6 +3383,7 @@ func (c *PodiumController) createMeasurementPDF(scan Measurement, timeOffset int
 			text += fmt.Sprintf("Patient: %s", scan.Patient.LastName)
 		}
 	} else {
+		// Fetch patient details from the database if last name is not available
 		patientUser := core.User{}
 		c.ormDB.Set("gorm:auto_preload", true).First(&patientUser, scan.Patient.UserId)
 		text = fmt.Sprintf("Patient: %s", patientUser.Username)
@@ -3423,6 +3393,7 @@ func (c *PodiumController) createMeasurementPDF(scan Measurement, timeOffset int
 		y += 6
 	}
 
+	// Add clinician information
 	text = ""
 	c.ormDB.Set("gorm:auto_preload", true).First(&scan.Patient, scan.PatientId)
 	if scan.DoctorId > 0 {
@@ -3432,20 +3403,19 @@ func (c *PodiumController) createMeasurementPDF(scan Measurement, timeOffset int
 		if doc.LastName != "" {
 			docName = fmt.Sprintf("%s %s", doc.FirstName, doc.LastName)
 		} else {
+			// Fetch doctor details from the database if last name is not available
 			docUser := core.User{}
 			c.ormDB.Set("gorm:auto_preload", true).Where("id=(SELECT user_id FROM doctor_users WHERE doctor_id=?)", doc.ID).First(&docUser)
 			docName = docUser.Username
 		}
-		if text != "" {
-			text += fmt.Sprintf("scanned by Clinician: %s", docName)
-		} else {
-			text += fmt.Sprintf("scanned by Clinician: %s", docName)
-		}
+		text += fmt.Sprintf("scanned by Clinician: %s", docName)
 	}
 	if text != "" {
 		pdf.Text(10, y, text)
 		y += 6
 	}
+
+	// Add practice information
 	text = ""
 	practice := Practice{}
 	c.ormDB.Set("gorm:auto_preload", true).Where("user_id=?", scan.UserId).First(&practice)
@@ -3453,6 +3423,7 @@ func (c *PodiumController) createMeasurementPDF(scan Measurement, timeOffset int
 		if practice.Name != "" {
 			text += fmt.Sprintf("at Practice: %s", practice.Name)
 		} else {
+			// Fetch practice details from the database if name is not available
 			practiceUser := core.User{}
 			c.ormDB.Set("gorm:auto_preload", true).First(&practiceUser, practice.UserId)
 			text += fmt.Sprintf("at Practice: %s", practiceUser.Username)
@@ -3465,8 +3436,8 @@ func (c *PodiumController) createMeasurementPDF(scan Measurement, timeOffset int
 
 	y += 3
 
+	// Add measurement files
 	pdf.SetFont("Arial", "B", 14)
-
 	xShift := float64(0)
 	files := make([]MeasurementFile, 5)
 
@@ -3508,269 +3479,85 @@ func (c *PodiumController) createMeasurementPDF(scan Measurement, timeOffset int
 	pdf.SetFont("Arial", "B", 14)
 	y += 65
 
+	// Print annotations
+	fmt.Println("Annotations:")
+	annotations := Annotations{}
+
+	err := c.ormDB.Set("gorm:auto_preload", true).
+		Table("annotations").
+		Select("annotation_time, MAX(id) as id, MAX(user_id) as user_id, MAX(content) as content").
+		Where("measurement_id=?", scan.ID).
+		Group("annotation_time").
+		Find(&annotations).Error
+	if err != nil {
+		log.Println("Error fetching annotations:", err)
+	}
+
+	for _, annotation := range annotations {
+		helperUser := HelperUser{}
+		helperUser.User = annotation.User
+		if c.isPatient(&annotation.User) {
+			helperUser.Patient = c.getPatient(&annotation.User)
+			//&helperUser.Patient.User = nil
+		} else if c.isDoctor(&annotation.User) {
+			helperUser.Doctor = c.getDoctor(&annotation.User)
+		} else if c.isPractice(&annotation.User) {
+			helperUser.Practice = c.getPractice(&annotation.User)
+		}
+
+		annotation.HelperUser = helperUser
+		fmt.Println("Annotation:", annotation)
+	}
+
+	// Add annotations to the PDF
+	if len(annotations) > 0 {
+		pdf.AddPage()
+		y = 15
+		
+		pdf.SetFont("Arial", "B", 16)
+		pdf.Text(10, y, "Notes")
+		y += 10
+		
+		pdf.SetFont("Arial", "B", 14)
+		y += 7
+		for _, annotation := range annotations {
+			pdf.SetFont("Arial", "", 11)
+			annotationUser := ""
+			if annotation.HelperUser.Doctor != nil {
+				annotationUser = annotation.HelperUser.Doctor.FirstName + " " + annotation.HelperUser.Doctor.LastName
+			} else if annotation.HelperUser.Patient != nil {
+				annotationUser = annotation.HelperUser.Patient.FirstName + " " + annotation.HelperUser.Patient.LastName
+			} else if annotation.HelperUser.Practice != nil {
+				annotationUser = annotation.HelperUser.Practice.Name
+			}
+
+			annotationTimestamp := annotation.AnnotationTime.Time.Unix()
+			annotationTimestamp = annotationTimestamp - timeOffset
+			annotation.AnnotationTime.Time = time.Unix(annotationTimestamp, 0)
+
+			pdf.Text(15, y, fmt.Sprintf("%s - %s", annotation.AnnotationTime.Time.Format("02/01/2006")+" @ "+annotation.AnnotationTime.Time.Format("15:04"), annotationUser))
+			pdf.SetFont("Arial", "B", 11)
+			pdf.Text(15, y+5, fmt.Sprintf("%s", annotation.Content))
+			y += 12
+		}
+	}
+
 	fileName := fmt.Sprintf(tmpPath + fmt.Sprintf("exportScan%d.pdf", scan.ID))
-	err := pdf.OutputFileAndClose(fileName)
+	err = pdf.OutputFileAndClose(fileName)
 	if err != nil {
 		log.Println(err)
 	}
+
+	fmt.Println("PDF File Name:", fileName)
 
 	return fileName
 }
 
 
 
-// func (c *PodiumController) createMeasurementPDF(scan Measurement, timeOffset int64) string {
-
-// 	//X tmpPath := "tmp/" + core.RandomString(10) + "/"
-// 	tmpPath := c.GetTmpUploadPath()
-// 	os.MkdirAll(tmpPath, 0777)
-
-// 	pdf := gofpdf.New("P", "mm", "A4", "")
-// 	pdf.SetAutoPageBreak(true, 20)
-
-// 	pdf.SetFooterFuncLpi(func(lastPage bool) {
-// 		pdf.SetY(-15)
-// 		pdf.SetFont("Arial", "I", 8)
-// 		pdf.CellFormat(0, 10, scan.Patient.FirstName+" "+scan.Patient.LastName+"", "", 0, "L", false, 0, "")
-// 		pdf.SetY(-12)
-// 		//pdf.CellFormat(0, 10, "Scan of "+scan.MeasurementDate.Time.Format("02/01/2006"), "", 0, "L", false, 0, "")
-// 		pdf.CellFormat(0, 10, "Scan on "+scan.MeasurementDate.Time.Format("02/01/2006")+" @ "+scan.MeasurementDate.Time.Format("15:04"), "", 0, "L", false, 0, "")
-
-// 		pdf.CellFormat(0, 10, fmt.Sprintf("Page %d of %d                            ", pdf.PageNo(), 2), "", 0, "C", false, 0, "")
-// 	})
-
-// 	pdf.AddPage()
-// 	pdf.SetFont("Arial", "B", 18)
-
-// 	pdf.Text(10, 15, "Scan on "+scan.MeasurementDate.Time.Format("02/01/2006")+" @ "+scan.MeasurementDate.Time.Format("15:04"))
-
-// 	//pdf.Image("logo_podium.png", 140, 3, 50, 0, false, "", 0, "")
-
-// 	x := 0.0
-// 	pdf.SetFont("Arial", "", 12)
-// 	y := 22.0
-// 	text := ""
-// 	if scan.Patient.LastName != "" {
-// 		if scan.Patient.FirstName != "" {
-// 			text += fmt.Sprintf("Patient: %s %s", scan.Patient.LastName, scan.Patient.FirstName)
-// 		} else {
-// 			text += fmt.Sprintf("Patient: %s", scan.Patient.LastName)
-// 		}
-// 	} else {
-// 		patientUser := core.User{}
-// 		c.ormDB.Set("gorm:auto_preload", true).First(&patientUser, scan.Patient.UserId)
-// 		text = fmt.Sprintf("Patient: %s", patientUser.Username)
-// 	}
-// 	if text != "" {
-// 		pdf.Text(10, y, text)
-// 		y += 6
-// 	}
-
-// 	text = ""
-// 	c.ormDB.Set("gorm:auto_preload", true).First(&scan.Patient, scan.PatientId)
-// 	if scan.DoctorId > 0 {
-// 		doc := Doctor{}
-// 		c.ormDB.Set("gorm:auto_preload", true).First(&doc, scan.DoctorId)
-// 		docName := ""
-// 		if doc.LastName != "" {
-// 			docName = fmt.Sprintf("%s %s", doc.FirstName, doc.LastName)
-// 		} else {
-// 			docUser := core.User{}
-// 			c.ormDB.Set("gorm:auto_preload", true).Where("id=(SELECT user_id FROM doctor_users WHERE doctor_id=?)", doc.ID).First(&docUser)
-// 			docName = docUser.Username
-// 		}
-// 		if text != "" {
-// 			text += fmt.Sprintf("scanned by Clinician: %s", docName)
-// 		} else {
-// 			text += fmt.Sprintf("scanned by Clinician: %s", docName)
-// 		}
-// 	}
-// 	if text != "" {
-// 		pdf.Text(10, y, text)
-// 		y += 6
-// 	}
-// 	text = ""
-// 	practice := Practice{}
-// 	c.ormDB.Set("gorm:auto_preload", true).Where("user_id=?", scan.UserId).First(&practice)
-// 	if practice.ID > 0 {
-// 		if practice.Name != "" {
-// 			text += fmt.Sprintf("at Practice: %s", practice.Name)
-// 		} else {
-// 			practiceUser := core.User{}
-// 			c.ormDB.Set("gorm:auto_preload", true).First(&practiceUser, practice.UserId)
-// 			text += fmt.Sprintf("at Practice: %s", practiceUser.Username)
-// 		}
-// 	}
-// 	if text != "" {
-// 		pdf.Text(10, y, text)
-// 		y += 6
-// 	}
-
-// 	y += 3
-
-	
-
-// 	pdf.SetFont("Arial", "B", 14)
-
-// 	xShift := float64(0)
-// 	files := make([]MeasurementFile, 5)
-
-// 	for _, file := range scan.MeasurementFiles {
-
-// 		if file.MeasurementType == "THERMAL" {
-// 			file.Label = "THERMAL (Absolute scale)"
-// 			files[1] = file
-
-// 		} else if file.MeasurementType == "DYNAMIC" {
-// 			file.Label = "THERMAL (Dynamic scale)"
-// 			files[2] = file
-
-// 		} else if file.MeasurementType == "STATISTIC" {
-// 			file.Label = "Histogram (Absolute scale)"
-// 			files[3] = file
-
-// 		} else if file.MeasurementType == "DYNAMIC_STATISTIC" {
-// 			file.Label = "Histogram (Dynamic scale)"
-// 			files[4] = file
-
-// 		} else if file.MeasurementType == "NORMAL" {
-// 			file.Label = file.MeasurementType
-// 			files[0] = file
-// 		} else {
-
-// 		}
-// 	}
-// 	for i := len(files) - 1; i >= 0; i-- {
-// 		_, err := os.Stat(files[i].GetAbsolutePath())
-// 		if files[i].ID == 0 || err != nil {
-// 			files = append(files[:i], files[i+1:]...)
-// 		}
-// 	}
 
 
-// 	pdf.SetFont("Arial", "B", 12)
-// 	for i, scanFile := range files {
-// 		if len(files) > 3 && i == 2 {
-// 			y += 65
-// 			xShift = -120
-// 		}
-// 		x = float64(10+60*i) + xShift
-// 		pdf.Text(x, y, strings.ReplaceAll(scanFile.Label, "_", " "))
-// 		pdf.Image(scanFile.GetAbsolutePath(), x, y+3, 50, 0, false, "", 0, "")
-// 	}
-// 	pdf.SetFont("Arial", "B", 14)
-// 	y += 65
 
-// 	if false {
-// 		pdf.Text(15, y, "Scan rating: ")
-// 		pdf.Image("icon_smiley_happy.png", 45, y-6, 8, 0, false, "", 0, "")
-// 		y += 10
-// 	}
-// 	questionnaire := &PatientQuestionnaire{}
-
-// 	c.ormDB.Set("gorm:auto_preload", true).Where("measurement_id =?", scan.ID).Find(&questionnaire)
-
-// 	setupQuestionnaire := &PatientQuestionnaire{}
-
-// 	c.ormDB.Debug().Set("gorm:auto_preload", true).Select("patient_questionnaires.*, ABS(TIMESTAMPDIFF(SECOND, ?, questionnaire_date)) as SecondsBetweenDates", scan.MeasurementDate).Where("questionnaire_date <= ?", scan.MeasurementDate).Where("patient_id = ?", scan.PatientId).Where("id IN (SELECT patient_questionnaire_id FROM patient_questionnaire_questions pqq LEFT JOIN question_templates qt ON pqq.template_question_id = qt.id WHERE qt.question_type = 1 AND pqq.answer_id > 0)").Order("SecondsBetweenDates ASC").First(&setupQuestionnaire)
-
-// 	_, maxY := pdf.GetPageSize()
-// 	if len(setupQuestionnaire.Questions) > 0 {
-// 		pdf.Text(15, y, "Setup-Questions")
-// 		y += 7
-// 		for i, q := range setupQuestionnaire.Questions {
-// 			pdf.SetFont("Arial", "", 11)
-// 			pdf.Text(15, y, fmt.Sprintf("SQ%d: %s", (i+1), q.TemplateQuestion.QuestionText))
-// 			pdf.SetFont("Arial", "B", 11)
-// 			pdf.Text(15, y+5, fmt.Sprintf("A%d: %s", (i+1), q.Answer.AnswerText))
-// 			y += 12
-
-// 			if y > maxY-20 {
-// 				pdf.AddPage()
-// 				y = 15
-// 			}
-// 		}
-// 	}
-
-// 	pdf.SetFont("Arial", "B", 14)
-// 	pdf.Text(15, y, "Questions")
-// 	y += 7
-// 	_, maxY = pdf.GetPageSize()
-// 	pageAdded := false
-// 	for i, q := range questionnaire.Questions {
-
-// 		pdf.SetFont("Arial", "", 11)
-// 		pdf.Text(15, y, fmt.Sprintf("Q%d: %s", (i+1), q.TemplateQuestion.QuestionText))
-// 		pdf.SetFont("Arial", "B", 11)
-// 		pdf.Text(15, y+5, fmt.Sprintf("A%d: %s", (i+1), q.Answer.AnswerText))
-// 		y += 12
-
-// 		if y > maxY-20 {
-// 			pdf.AddPage()
-// 			pageAdded = true
-// 			y = 15
-// 		}
-// 	}
-
-// 	annotations := Annotations{}
-
-// 	c.ormDB.Set("gorm:auto_preload", true).Where("measurement_id=?", scan.ID).Group("annotation_time").Find(&annotations)
-
-// 	for key, annotation := range annotations {
-// 		helperUser := HelperUser{}
-// 		helperUser.User = annotation.User
-// 		if c.isPatient(&annotation.User) {
-// 			helperUser.Patient = c.getPatient(&annotation.User)
-// 			//&helperUser.Patient.User = nil
-// 		} else if c.isDoctor(&annotation.User) {
-// 			helperUser.Doctor = c.getDoctor(&annotation.User)
-// 		} else if c.isPractice(&annotation.User) {
-// 			helperUser.Practice = c.getPractice(&annotation.User)
-// 		}
-
-// 		annotation.HelperUser = helperUser
-// 		annotations[key] = annotation
-// 	}
-
-// 	if !pageAdded {
-// 		pdf.AddPage()
-// 		y = 15
-// 	} else {
-// 		y += 15
-// 	}
-
-// 	pdf.SetFont("Arial", "B", 14)
-
-// 	y += 7
-// 	for _, annotation := range annotations {
-// 		pdf.SetFont("Arial", "", 11)
-// 		annotationUser := ""
-// 		if annotation.HelperUser.Doctor != nil {
-// 			annotationUser = annotation.HelperUser.Doctor.FirstName + " " + annotation.HelperUser.Doctor.LastName
-// 		} else if annotation.HelperUser.Patient != nil {
-// 			annotationUser = annotation.HelperUser.Patient.FirstName + " " + annotation.HelperUser.Patient.LastName
-// 		} else if annotation.HelperUser.Practice != nil {
-// 			annotationUser = annotation.HelperUser.Practice.Name
-// 		}
-
-// 		annotationTimestamp := annotation.AnnotationTime.Time.Unix()
-// 		annotationTimestamp = annotationTimestamp - timeOffset
-// 		annotation.AnnotationTime.Time = time.Unix(annotationTimestamp, 0)
-
-// 		pdf.Text(15, y, fmt.Sprintf("%s - %s", annotation.AnnotationTime.Time.Format("02/01/2006")+" @ "+annotation.AnnotationTime.Time.Format("15:04"), annotationUser))
-// 		pdf.SetFont("Arial", "B", 11)
-// 		pdf.Text(15, y+5, fmt.Sprintf("%s", annotation.Content))
-// 		y += 12
-// 	}
-
-// 	fileName := fmt.Sprintf(tmpPath + fmt.Sprintf("exportScan%d.pdf", scan.ID))
-// 	err := pdf.OutputFileAndClose(fileName)
-// 	if err != nil {
-// 		log.Println(err)
-// 	}
-
-// 	return fileName
-// }
 
 // DeleteChatMessage swagger:route DELETE /me/conversations/{userId} chats deleteChatMessage
 //
@@ -3778,24 +3565,22 @@ func (c *PodiumController) createMeasurementPDF(scan Measurement, timeOffset int
 //
 // produces:
 // - application/json
-//   - name: Authorization
-//     in: header
-//     description: "Bearer " + token
-//     required: true
-//     type: string
-//   - name: userId
-//     in: path
-//     description: the ID of the other conversation partner
-//     required: true
-//     type: string
-//
+//	+ name: Authorization
+//    in: header
+//    description: "Bearer " + token
+//    required: true
+//    type: string
+//	+ name: userId
+//    in: path
+//    description: the ID of the other conversation partner
+//    required: true
+//    type: string
 // Responses:
-//
-//	   default: HandleErrorData
-//			  200:
-//				data: []Message
-//	       401: HandleErrorData "unauthorized"
-//	       403: HandleErrorData "no Permission"
+//    default: HandleErrorData
+//		  200:
+//			data: []Message
+//        401: HandleErrorData "unauthorized"
+//        403: HandleErrorData "no Permission"
 func (c *PodiumController) SaveMeasurementRiskRatingHandler(w http.ResponseWriter, r *http.Request) {
 	ok := false
 	var user *core.User
