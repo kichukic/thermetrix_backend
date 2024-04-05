@@ -361,9 +361,9 @@ will download the cover letter
 
 
 
-           [       IMPORTANT INFO             ]
- -------------------------------------------------------
+                                                     [       IMPORTANT INFO             ]
+                                            -------------------------------------------------------
 
- in       ---controllerpodium.go---    file theres a function called  (getPatientImagesFromDB) in that function on line  1484 a variable called imageURL holds the server response url we need tochange it according the base url we r currently having related to server
+In the file named "controllerpodium.go," it is imperative to reference the domain or server address within specific lines for clarity and accessibility. To expedite this process, the placeholder IP address "68.183.86.143" has been inserted for ease of identification. Therefore, kindly locate occurrences of the IP address "68.183.86.143" within the file and replace them with the appropriate address according to your requirements.
 
- also keep  **patient_files** , **cover_letters** and **PodiumFiles** folders inside the root folder of the project
+Also keep  **patient_files** , **cover_letters** and **PodiumFiles** folders inside the root folder of the project
