@@ -51,7 +51,6 @@ func NewPodiumController(ormDB *gorm.DB, users *map[string]core.User) *PodiumCon
 		ormDB.AutoMigrate(&PatientImages{})
 		ormDB.AutoMigrate(&CoverLetter{})
 		ormDB.AutoMigrate(&notes{})
-		
 
 		c.insertRiskDefinitions()
 		c.insertAppointmentStatusDefs()
@@ -1622,6 +1621,7 @@ func (c *PodiumController) ScanHistory(w http.ResponseWriter, r *http.Request) {
 
 
 
+
 //ispl_KTH_03/3/2024
 
 
@@ -1722,6 +1722,12 @@ func (c *PodiumController) saveDataToDB(measurementID string, patientID string, 
 }
 
 //ispl_KTH_03/3/2024
+
+
+
+
+
+
 
 
 
@@ -1913,7 +1919,6 @@ func (c *PodiumController) GetCoverLetter(w http.ResponseWriter, r *http.Request
     w.WriteHeader(http.StatusOK)
     w.Write(jsonData)
 }
-
 
 func (c *PodiumController) serveCoverLetterHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract the file path from the URL using Gorilla Mux Vars

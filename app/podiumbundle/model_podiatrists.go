@@ -299,8 +299,6 @@ type Annotation struct {
 	DoctorId uint `json:"doctor_id" gorm:"-"`
 	//TODO locator?
 }
-
-
 type Annotations []Annotation
 
 type MeasurementLightbox struct {
