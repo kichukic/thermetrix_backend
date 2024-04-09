@@ -465,7 +465,9 @@ func (c *PodiumController) GetDoctorsSpecificHandler(w http.ResponseWriter, r *h
 	return
 
 	//c.SendJSON(w, &doctors, http.StatusOK)
-} //2020-12-18 16:38:50, patient: 340
+} 
+
+//2020-12-18 16:38:50, patient: 340
 
 // getMyPatients swagger:route GET /me/patients patient getMyPatients
 //
