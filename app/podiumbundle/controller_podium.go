@@ -1156,27 +1156,6 @@ func (c *PodiumController) GetPracticeDevicesHandler(w http.ResponseWriter, r *h
 	}
 }
 
-// this is my arenaa  .. . . . . . .. . . . . . . . . . . . .
-
-// my code  kic . . . ...  . . . .
-func (c *PodiumController) hello(w http.ResponseWriter, r *http.Request) {
-	// Check for user authentication
-	ok, user := c.GetUser(w, r)
-	if !ok {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-	// Your function logic here
-	response := "Hello, " + user.Username // Use the authenticated user's username
-	w.Header().Set("Content-Type", "text/plain")
-	w.WriteHeader(http.StatusOK)
-	_, err := w.Write([]byte(response))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}
-
-// mail send function  . . . . . . . .  . . . .
 
 type EmailRequest struct {
 	To          string   `json:"to"`
@@ -1187,38 +1166,29 @@ type EmailRequest struct {
 
 // ispl_KTH_14/2/2024
 func (c *PodiumController) SendMail1(w http.ResponseWriter, r *http.Request) {
-	// Parse the multi-part form data
-	err := r.ParseMultipartForm(10 << 20) // 10 MB is the maximum form size
+	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// Access other form fields
 	to := r.FormValue("to")
 	subject := r.FormValue("subject")
 	body := r.FormValue("body")
 	patient_username := r.FormValue("patient_username")
-	fmt.Println("the phone number > >  > > > > ", patient_username)
-	// Access file attachments
 	fileHeaders := r.MultipartForm.File["attachments"]
 	if len(fileHeaders) == 0 {
 		http.Error(w, "No attachments provided", http.StatusBadRequest)
 		return
 	}
 
-	// Handle the attachments
-	attachmentDir := "/root/hijack/thermetrix_backend/PodiumFiles" // Set the directory where you want to save the attachments
-	// Create the directory if it doesn't exist
+	attachmentDir := "/root/hijack/thermetrix_backend/PodiumFiles" 
 	err = os.MkdirAll(attachmentDir, os.ModePerm)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	// Create a slice to store attachment file paths
 	attachmentPaths := []string{}
-	// Iterate through each attachment and save with the original filename
 	for _, fileHeader := range fileHeaders {
 		attachmentFileName := filepath.Join(attachmentDir, patient_username+"_"+fileHeader.Filename)
 		if _, err := os.Stat(attachmentFileName); err == nil {
@@ -1237,7 +1207,6 @@ func (c *PodiumController) SendMail1(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		// Open the attachment file
 		attachmentFile, err := fileHeader.Open()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -1245,7 +1214,6 @@ func (c *PodiumController) SendMail1(w http.ResponseWriter, r *http.Request) {
 		}
 		defer attachmentFile.Close()
 
-		// Create the attachment file
 		attachmentOutput, err := os.Create(attachmentFileName)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -1253,18 +1221,15 @@ func (c *PodiumController) SendMail1(w http.ResponseWriter, r *http.Request) {
 		}
 		defer attachmentOutput.Close()
 
-		// Copy the attachment data from the uploaded file to the attachment file
 		_, err = io.Copy(attachmentOutput, attachmentFile)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		// Add the attachment file path to the slice
 		attachmentPaths = append(attachmentPaths, attachmentFileName)
 	}
 
-	// Continue with the email sending logic
 	from := "info@podium.care"
 	config := core.EmailConfig{
 		SMTPHost:           "smtp.ionos.co.uk",
@@ -1275,7 +1240,6 @@ func (c *PodiumController) SendMail1(w http.ResponseWriter, r *http.Request) {
 		ServerName:         "smtp.ionos.co.uk",
 	}
 
-	// Convert attachmentPaths to []string and pass it to SendMail1 function
 	attachmentPathsString := make([]string, len(attachmentPaths))
 	for i, path := range attachmentPaths {
 		attachmentPathsString[i] = path
@@ -1287,7 +1251,6 @@ func (c *PodiumController) SendMail1(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return a success response
 	response := "Email sent successfully"
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusOK)
@@ -1301,87 +1264,60 @@ func (c *PodiumController) SendMail1(w http.ResponseWriter, r *http.Request) {
 //ispl_KTH_14/2/2024
 
 // ispl_KTH_14/2/2024
-// save images for patient  code //
 func (c *PodiumController) SaveImagesForPatient(w http.ResponseWriter, r *http.Request) {
-	// Parse form data
-	err := r.ParseMultipartForm(10 << 20) // 10 MB is the maximum form size
+	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	// Retrieve patient ID and measurement ID from form data
 	patientID := r.FormValue("patient_id")
 	measurementID := r.FormValue("measurement_id")
-
-	// Track if DFA images are complete
 	isDFAComplete := false
-
-	// Access files from form data for each tag
 	fileHeaders := map[string][]*multipart.FileHeader{
 		"DFA": r.MultipartForm.File["DFA"],
-		// Add more headers if required
 	}
-
-	// Directory to save files
-
 	currentDir, err := os.Getwd()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	//this one has to change to core.uploadpath
 	imageDir := filepath.Join(currentDir, "patients_files")
-	// imageDir := "/home/hijack/Documents/thermetrix_backend/patients_files" // Replace this with your desired directory
-
-	// Iterate through each header type and associated file headers
 	for headerType, headers := range fileHeaders {
 		var imagePaths []string
 
-		// Process each file header
 		for _, fileHeader := range headers {
-			// Open the uploaded file
 			uploadedFile, err := fileHeader.Open()
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			defer uploadedFile.Close()
-
-			// Create the complete file path for saving
 			completeImagePath := filepath.Join(imageDir, fileHeader.Filename)
-
-			// Create the file
 			imageFile, err := os.Create(completeImagePath)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			defer imageFile.Close()
-
-			// Copy the file data to the file
 			_, err = io.Copy(imageFile, uploadedFile)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-
-			// Append the complete file path to the slice
 			imagePaths = append(imagePaths, completeImagePath)
 		}
 
-		// Check if the current header is "DFA" and if at least one file has been processed
 		if headerType == "DFA" && len(imagePaths) > 0 {
 			isDFAComplete = true
 		}
 
-		// Save complete file paths to the database with the header type as image key
 		if err := c.savePatientImagesToDB(measurementID, patientID, imagePaths, headerType); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
 
-	// After all headers are processed, update the IsDFA_Complete status if needed
 	if isDFAComplete {
 		if err := c.ormDB.Model(&PatientImages{}).Where("measurement_id = ? AND patient_id = ?", measurementID, patientID).Update("IsDFA_Complete", true).Error; err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -1389,7 +1325,6 @@ func (c *PodiumController) SaveImagesForPatient(w http.ResponseWriter, r *http.R
 		}
 	}
 
-	// Return success response if everything is saved successfully
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Files saved successfully"))
 }
@@ -1398,45 +1333,33 @@ func (c *PodiumController) SaveImagesForPatient(w http.ResponseWriter, r *http.R
 
 // ispl_KTH_14/2/2024
 func (c *PodiumController) savePatientImagesToDB(measurementID string, patientID string, imagePaths []string, headerType string) error {
-	// Ensure you have an active database connection (ormDB) before calling this function
-
-	// Define a PatientImages struct to hold the data to upsert
 	var patientImages PatientImages
-
-	// Check if a record already exists
 	exists := c.ormDB.First(&patientImages, "measurement_id = ? AND patient_id = ?", measurementID, patientID).Error == nil
 
-	// If there are no image paths provided, set ImagePath and Images to an empty string
 	if len(imagePaths) == 0 {
 		patientImages = PatientImages{
 			Measurement_id: measurementID,
 			PatientID:      patientID,
-			ImagePath:      "", // Empty string to represent NULL
-			Images:         "", // Empty string to represent NULL
+			ImagePath:      "", 
+			Images:         "", 
 			ImageKey:       headerType,
 		}
 	} else {
-		// Extract directory path from the first image path (assuming all images are in the same directory)
 		dirPath, _ := filepath.Split(imagePaths[0])
-
-		// Use only the first image path for this example
 		_, filename := filepath.Split(imagePaths[0])
 
 		patientImages = PatientImages{
 			Measurement_id: measurementID,
 			PatientID:      patientID,
 			ImagePath:      dirPath,
-			Images:         filename, // Now storing only the filename
+			Images:         filename, 
 			ImageKey:       headerType,
 		}
 	}
 
-	// Perform upsert operation
 	if exists {
-		// Record exists; update it
 		return c.ormDB.Model(&PatientImages{}).Where("measurement_id = ? AND patient_id = ?", measurementID, patientID).Updates(patientImages).Error
 	} else {
-		// Record does not exist; insert it
 		return c.ormDB.Create(&patientImages).Error
 	}
 }
@@ -1444,36 +1367,28 @@ func (c *PodiumController) savePatientImagesToDB(measurementID string, patientID
 //ispl_KTH_14/2/2024
 
 // ispl_KTH_14/2/2024
-// fetch patient pdf
 func (c *PodiumController) getPatientImagesFromDB(w http.ResponseWriter, r *http.Request) {
-	// Extract the patient ID from the request URL
 	params := mux.Vars(r)
 	patientID := params["MeasurementID"]
 
-	// Call the function to fetch patient images based on the patient ID
 	patientImages, err := c.fetchPatientImagesFromDB(patientID)
 	if err != nil {
 		http.Error(w, "Failed to fetch patient images", http.StatusInternalServerError)
 		return
 	}
 
-	// Check if patientImages is nil or empty and return a "not found" response if true
 	if patientImages == nil || len(patientImages) == 0 {
 		http.Error(w, "No patient images found", http.StatusNotFound)
 		return
 	}
 
-	// Initialize isDFA_Complete with a default value (e.g., false)
 	isDFA_Complete := false
 	if len(patientImages) > 0 {
-		// Extract IsDFA_Complete from the first element if images are present
 		isDFA_Complete = patientImages[0].IsDFA_Complete
 	}
 
-	// Create a slice to store image URLs
 	imageUrls := make([]string, 0)
 
-	// Loop through the patient images and construct image URLs
 	for _, image := range patientImages {
 		if image.Images != "" {
 			imageURL := fmt.Sprintf("http://localhost:4001/api/v1/serve-image/%s", strings.TrimPrefix(image.Images, "/"))
@@ -1481,24 +1396,20 @@ func (c *PodiumController) getPatientImagesFromDB(w http.ResponseWriter, r *http
 		}
 	}
 
-	// Construct the response object
 	response := map[string]interface{}{
 		"isDFA_Complete": isDFA_Complete,
 		"patientId":      patientID,
 		"url":            imageUrls,
 	}
 
-	// Encode the response as JSON
 	jsonData, err := json.Marshal(response)
 	if err != nil {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
 	}
 
-	// Set the appropriate Content-Type header
 	w.Header().Set("Content-Type", "application/json")
 
-	// Write the JSON response to the client
 	w.Write(jsonData)
 }
 
@@ -1508,7 +1419,6 @@ func (c *PodiumController) getPatientImagesFromDB(w http.ResponseWriter, r *http
 func (c *PodiumController) fetchPatientImagesFromDB(patientID string) ([]PatientImage, error) {
 	var patientImages []PatientImage
 
-	// Fetch the patient images from the database based on patientID
 	if err := c.ormDB.Where("measurement_id = ?", patientID).Find(&patientImages).Error; err != nil {
 		return nil, err
 	}
@@ -1520,67 +1430,51 @@ func (c *PodiumController) fetchPatientImagesFromDB(patientID string) ([]Patient
 // ispl_KTH_14/2/2024
 func (c *PodiumController) serveImageHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Print("call received inside the funcrtions>>>>>>>>>")
-	// Extract the file path from the URL using Gorilla Mux Vars
 	params := mux.Vars(r)
-	// The filePath should be sanitized or validated to avoid directory traversal attacks
 	filePath := params["filepath"]
 	print("the path ?>>>>>>>>>", filePath)
-	// Construct the absolute file path
-	// basePath := "/home/hijack/Documents/thermetrix_backend/patients_files/"
 	currentDir, err := os.Getwd()
 	if err != nil {
-		// Handle the error, possibly return from the function
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+	//this has to be changed to core.uploadpath
 	basePath := path.Join(currentDir, "patients_files")
 	absFilePath := path.Join(basePath, filePath)
 
-	// Open the file
 	file, err := os.Open(absFilePath)
 	if err != nil {
-		// If the file does not exist or cannot be opened, return a 404 error
 		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
 	defer file.Close()
-
-	// Detect the content type and set the appropriate header
 	contentType := mime.TypeByExtension(filepath.Ext(filePath))
 	if contentType == "" {
-		// Default to octet-stream if the type cannot be detected
 		contentType = "application/octet-stream"
 	}
 	w.Header().Set("Content-Type", contentType)
 
-	// Serve the file
 	http.ServeContent(w, r, filePath, time.Now(), file)
 }
 
 //ispl_KTH_14/2/2024
 
 // ispl_KTH_14/2/2024
-// scan history code
 func (c *PodiumController) ScanHistory(w http.ResponseWriter, r *http.Request) {
 	var patientImages []PatientImage
 	//replace base url with server's base url
 	baseURL := "http://localhost:4001/api/v1/serve-image/"
-
-	// Fetch all patient images from the database
 	if err := c.ormDB.Find(&patientImages).Error; err != nil {
 		http.Error(w, "Failed to fetch patient images", http.StatusInternalServerError)
 		return
 	}
 
-	// Create a map to store all patient data with patientId as the key
 	allPatientsData := make(map[string]map[string]interface{})
 
-	// Iterate over all fetched patient images
 	for _, image := range patientImages {
-		_, filename := filepath.Split(image.Images)    // Assuming ImagePath contains the full path
-		fileURL := baseURL + url.QueryEscape(filename) // Prepend the base URL and ensure the file name is URL encoded
+		_, filename := filepath.Split(image.Images)  
+		fileURL := baseURL + url.QueryEscape(filename) 
 
-		// Check if we already have an entry for this patientID
 		if _, exists := allPatientsData[image.PatientID]; !exists {
 			allPatientsData[image.PatientID] = map[string]interface{}{
 				"isDFA_Complete": image.IsDFA_Complete,
@@ -1588,7 +1482,6 @@ func (c *PodiumController) ScanHistory(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		// Append the new URL to the patient's URL list
 		allPatientsData[image.PatientID]["urls"] = append(allPatientsData[image.PatientID]["urls"].([]string), fileURL)
 	}
 
@@ -1603,31 +1496,20 @@ func (c *PodiumController) ScanHistory(w http.ResponseWriter, r *http.Request) {
 		allPatientsSlice = append(allPatientsSlice, patientData)
 	}
 
-	// Encode the response as JSON
 	jsonData, err := json.Marshal(allPatientsSlice)
 	if err != nil {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
 	}
 
-	// Set the appropriate Content-Type header
 	w.Header().Set("Content-Type", "application/json")
 
-	// Write the JSON response to the client
 	w.Write(jsonData)
 }
-
 //ispl_KTH_14/2/2024
-
-//new codeeeeeeeeeeeeeeeeee
-
-
 
 
 //ispl_KTH_03/3/2024
-
-
-
 func (c *PodiumController) GetNotesByMeasurementIDHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
     measurementID := vars["MeasurementID"]
@@ -1637,7 +1519,6 @@ func (c *PodiumController) GetNotesByMeasurementIDHandler(w http.ResponseWriter,
         return
     }
 
-    // Convert notes to JSON and send response
     jsonResponse, err := json.Marshal(notes)
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -1652,7 +1533,6 @@ func (c *PodiumController) getNotesByMeasurementID(measurementID string) ([]note
 
     var notes []notes
 
-    // Retrieve notes from the database based on the measurement ID
     if err := c.ormDB.Where("measurement_id = ?", measurementID).Find(&notes).Error; err != nil {
         return nil, err
     }
@@ -1665,7 +1545,6 @@ func (c *PodiumController) getNotesByMeasurementID(measurementID string) ([]note
 
 
 func (c *PodiumController) SaveNotes(w http.ResponseWriter, r *http.Request) {
-    // Parse JSON request body
     var requestBody notes
     err := json.NewDecoder(r.Body).Decode(&requestBody)
     if err != nil {
@@ -1673,35 +1552,29 @@ func (c *PodiumController) SaveNotes(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // Save data to the database
     if err := c.saveDataToDB(requestBody.MeasurementID, requestBody.PatientID, requestBody.Notes); err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return
     }
 
-    // Return success response
     w.WriteHeader(http.StatusOK)
     w.Write([]byte("Data saved successfully"))
 }
 
 func (c *PodiumController) saveDataToDB(measurementID string, patientID string, notes string) error {
-	// Assuming you have an active database connection (ormDB) before calling this function
 
-	// Define your database model struct here if not already defined
 	type note struct {
 		MeasurementID string `gorm:"column:measurement_id"`
 		PatientID     string `gorm:"column:patient_id"`
 		Notes         string `gorm:"column:notes"`
 	}
 
-	// Check if a record already exists for the given measurement ID
 	existingData := note{}
 	err := c.ormDB.Where("measurement_id = ?", measurementID).First(&existingData).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
 
-	// Create or update the record
 	newData := note{
 		MeasurementID: measurementID,
 		PatientID:     patientID,
@@ -1709,12 +1582,10 @@ func (c *PodiumController) saveDataToDB(measurementID string, patientID string, 
 	}
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		// If the record doesn't exist, create it
 		if err := c.ormDB.Create(&newData).Error; err != nil {
 			return err
 		}
 	} else {
-		// If the record exists, update it
 		if err := c.ormDB.Model(&newData).Where("measurement_id = ?", measurementID).Updates(&newData).Error; err != nil {
 			return err
 		}
@@ -1727,27 +1598,14 @@ func (c *PodiumController) saveDataToDB(measurementID string, patientID string, 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+//ispl_KTH_03/3/2024
 func (c *PodiumController) SaveCoverLetter(w http.ResponseWriter, r *http.Request) {
-	// Parse form data
-	err := r.ParseMultipartForm(10 << 20) // 10 MB is the maximum form size
+	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// Retrieve patient ID, measurement ID, and cover letter file from form data
 	patientID := r.FormValue("patient_id")
 	measurementID := r.FormValue("measurement_id")
 	coverLetterFile, coverLetterHeader, err := r.FormFile("cover_letter")
@@ -1756,7 +1614,6 @@ func (c *PodiumController) SaveCoverLetter(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Define directory to save cover letter files
 	currentDir, err := os.Getwd()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -1764,16 +1621,12 @@ func (c *PodiumController) SaveCoverLetter(w http.ResponseWriter, r *http.Reques
 	}
 	coverLetterDir := filepath.Join(currentDir, "cover_letters")
 
-	// If a cover letter file was uploaded, process it
 	var coverLetterPath string
 	if coverLetterFile != nil {
 		defer coverLetterFile.Close()
-
-		// Generate a filename based on the current timestamp
-		timestamp := time.Now().Format("20060102150405") // YYYYMMDDHHMMSS
+		timestamp := time.Now().Format("20060102150405") 
 		filename := fmt.Sprintf("%s_%s", timestamp, coverLetterHeader.Filename)
 
-		// Create the cover letter file
 		coverLetterPath = filepath.Join(coverLetterDir, filename)
 		coverLetter, err := os.Create(coverLetterPath)
 		if err != nil {
@@ -1782,7 +1635,6 @@ func (c *PodiumController) SaveCoverLetter(w http.ResponseWriter, r *http.Reques
 		}
 		defer coverLetter.Close()
 
-		// Copy cover letter data to the file
 		_, err = io.Copy(coverLetter, coverLetterFile)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -1790,31 +1642,24 @@ func (c *PodiumController) SaveCoverLetter(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	// Determine if cover letter is referred or not
 	isReferred := coverLetterFile != nil
 
-	// Save cover letter details to the database
 	if err := c.saveCoverLetterToDB(measurementID, patientID, coverLetterPath, isReferred); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Return success response
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Cover letter saved successfully"))
 }
 
 func (c *PodiumController) saveCoverLetterToDB(measurementID string, patientID string, coverLetterPath string, isReferred bool) error {
-	// Assuming you have an active database connection (ormDB) before calling this function
-
-	// Check if a record already exists for the given measurement ID
 	existingCoverLetter := CoverLetter{}
 	err := c.ormDB.Where("measurement_id = ?", measurementID).First(&existingCoverLetter).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
 
-	// Create or update the cover letter record
 	coverLetter := CoverLetter{
 		MeasurementID: measurementID,
 		PatientID:     patientID,
@@ -1823,12 +1668,10 @@ func (c *PodiumController) saveCoverLetterToDB(measurementID string, patientID s
 	}
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		// If the record doesn't exist, create it
 		if err := c.ormDB.Create(&coverLetter).Error; err != nil {
 			return err
 		}
 	} else {
-		// If the record exists, update it
 		if err := c.ormDB.Model(&coverLetter).Where("measurement_id = ?", measurementID).Updates(&coverLetter).Error; err != nil {
 			return err
 		}
@@ -1836,7 +1679,9 @@ func (c *PodiumController) saveCoverLetterToDB(measurementID string, patientID s
 
 	return nil
 }
+//ispl_KTH_03/3/2024
 
+//ispl_KTH_03/3/2024
 type CoverLetterResponse struct {
 	MeasurementID string `json:"measurement_id"`
 	CoverLetter   string `json:"cover_letter"`
@@ -1844,121 +1689,92 @@ type CoverLetterResponse struct {
 }
 
 func (c *PodiumController) GetCoverLetter(w http.ResponseWriter, r *http.Request) {
-    // Extract the measurement ID from the request URL
     vars := mux.Vars(r)
     measurementID := vars["MeasurementID"]
-    
-    // Query the database for cover letter records based on the provided measurement ID
     var coverLetter CoverLetter
     if measurementID == "" {
-        // If measurement ID is empty, return a response with default values
         response := map[string]interface{}{
             "cover_letter_url": "",
             "is_referred":      false,
             "measurement_id":   "",
         }
-        // Encode the response as JSON
         jsonData, err := json.Marshal(response)
         if err != nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
         }
-        // Set response headers and write JSON data to response
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(http.StatusOK)
         w.Write(jsonData)
         return
     }
 
-    // If measurement ID is provided, query the database for the cover letter
     if err := c.ormDB.Where("measurement_id = ?", measurementID).First(&coverLetter).Error; err != nil {
-        // If no cover letter is found, return a response with default values
         if errors.Is(err, gorm.ErrRecordNotFound) {
             response := map[string]interface{}{
                 "cover_letter_url": "",
                 "is_referred":      false,
                 "measurement_id":   measurementID,
             }
-            // Encode the response as JSON
             jsonData, err := json.Marshal(response)
             if err != nil {
                 http.Error(w, err.Error(), http.StatusInternalServerError)
                 return
             }
-            // Set response headers and write JSON data to response
             w.Header().Set("Content-Type", "application/json")
             w.WriteHeader(http.StatusOK)
             w.Write(jsonData)
             return
         }
-        // If another error occurs, return an internal server error
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return
     }
 
-    // Construct the URL for downloading the cover letter
     coverLetterURL := ""
     if coverLetter.CoverLetter != "" {
         coverLetterURL = fmt.Sprintf("http://localhost:4001/api/v1/download-cover-letter/%s", filepath.Base(coverLetter.CoverLetter))
     }
 
-    // Construct the response object
     response := map[string]interface{}{
         "cover_letter_url": coverLetterURL,
         "is_referred":      coverLetter.IsReferred,
         "measurement_id":   measurementID,
     }
 
-    // Encode the response as JSON
     jsonData, err := json.Marshal(response)
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return
     }
 
-    // Set response headers and write JSON data to response
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusOK)
     w.Write(jsonData)
 }
 
 func (c *PodiumController) serveCoverLetterHandler(w http.ResponseWriter, r *http.Request) {
-	// Extract the file path from the URL using Gorilla Mux Vars
 	params := mux.Vars(r)
-	// The filePath should be sanitized or validated to avoid directory traversal attacks
 	filePath := params["filepath"]
-
-	// Construct the absolute file path for cover letters
 	currentDir, err := os.Getwd()
 	if err != nil {
-		// Handle the error, possibly return from the function
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 	absFilePath := filepath.Join(currentDir, "cover_letters", filePath)
-
-	// Open the file
 	file, err := os.Open(absFilePath)
 	if err != nil {
-		// If the file does not exist or cannot be opened, return a 404 error
 		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
 	defer file.Close()
-
-	// Detect the content type and set the appropriate header
 	contentType := mime.TypeByExtension(filepath.Ext(filePath))
 	if contentType == "" {
-		// Default to octet-stream if the type cannot be detected
 		contentType = "application/octet-stream"
 	}
 	w.Header().Set("Content-Type", contentType)
-
-	// Serve the file
 	http.ServeContent(w, r, filePath, time.Now(), file)
 }
-
-//end of new codeeeeeeeeeeeeeee
+//ispl_KTH_03/3/2024
 
 func (c *PodiumController) SavePracticeHandler(w http.ResponseWriter, r *http.Request) {
 	practice := Practice{}
