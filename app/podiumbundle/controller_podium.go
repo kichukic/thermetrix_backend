@@ -1181,13 +1181,14 @@ func (c *PodiumController) SendMail1(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "No attachments provided", http.StatusBadRequest)
 		return
 	}
-
-	attachmentDir := "/root/hijack/thermetrix_backend/PodiumFiles" 
+	uploadPath := core.GetUploadFilepath()
+	attachmentDir := filepath.Join(uploadPath, "PodiumFiles")
 	err = os.MkdirAll(attachmentDir, os.ModePerm)
-	if err != nil {
+	if (err != nil) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	
 	attachmentPaths := []string{}
 	for _, fileHeader := range fileHeaders {
 		attachmentFileName := filepath.Join(attachmentDir, patient_username+"_"+fileHeader.Filename)
@@ -1261,6 +1262,7 @@ func (c *PodiumController) SendMail1(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+
 //ispl_KTH_14/2/2024
 
 // ispl_KTH_14/2/2024
@@ -1276,13 +1278,9 @@ func (c *PodiumController) SaveImagesForPatient(w http.ResponseWriter, r *http.R
 	fileHeaders := map[string][]*multipart.FileHeader{
 		"DFA": r.MultipartForm.File["DFA"],
 	}
-	currentDir, err := os.Getwd()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	//this one has to change to core.uploadpath
-	imageDir := filepath.Join(currentDir, "patients_files")
+	uploadPath := core.GetUploadFilepath()
+	imageDir := filepath.Join(uploadPath, "patients_files")
+
 	for headerType, headers := range fileHeaders {
 		var imagePaths []string
 
@@ -1328,6 +1326,7 @@ func (c *PodiumController) SaveImagesForPatient(w http.ResponseWriter, r *http.R
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Files saved successfully"))
 }
+
 
 //ispl_KTH_14/2/2024
 
@@ -1429,19 +1428,12 @@ func (c *PodiumController) fetchPatientImagesFromDB(patientID string) ([]Patient
 
 // ispl_KTH_14/2/2024
 func (c *PodiumController) serveImageHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Print("call received inside the funcrtions>>>>>>>>>")
 	params := mux.Vars(r)
 	filePath := params["filepath"]
-	print("the path ?>>>>>>>>>", filePath)
-	currentDir, err := os.Getwd()
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-	//this has to be changed to core.uploadpath
-	basePath := path.Join(currentDir, "patients_files")
+	print("the path", filePath)
+	uploadPath := core.GetUploadFilepath()
+	basePath := path.Join(uploadPath, "PodiumFiles")
 	absFilePath := path.Join(basePath, filePath)
-
 	file, err := os.Open(absFilePath)
 	if err != nil {
 		http.Error(w, "Not Found", http.StatusNotFound)
@@ -1457,12 +1449,12 @@ func (c *PodiumController) serveImageHandler(w http.ResponseWriter, r *http.Requ
 	http.ServeContent(w, r, filePath, time.Now(), file)
 }
 
+
 //ispl_KTH_14/2/2024
 
 // ispl_KTH_14/2/2024
 func (c *PodiumController) ScanHistory(w http.ResponseWriter, r *http.Request) {
 	var patientImages []PatientImage
-	//replace base url with server's base url
 	baseURL := "http://localhost:4001/api/v1/serve-image/"
 	if err := c.ormDB.Find(&patientImages).Error; err != nil {
 		http.Error(w, "Failed to fetch patient images", http.StatusInternalServerError)
@@ -1485,7 +1477,6 @@ func (c *PodiumController) ScanHistory(w http.ResponseWriter, r *http.Request) {
 		allPatientsData[image.PatientID]["urls"] = append(allPatientsData[image.PatientID]["urls"].([]string), fileURL)
 	}
 
-	// Convert the map to a slice of patient data
 	var allPatientsSlice []map[string]interface{}
 	for patientID, data := range allPatientsData {
 		patientData := map[string]interface{}{
@@ -1605,7 +1596,6 @@ func (c *PodiumController) SaveCoverLetter(w http.ResponseWriter, r *http.Reques
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
 	patientID := r.FormValue("patient_id")
 	measurementID := r.FormValue("measurement_id")
 	coverLetterFile, coverLetterHeader, err := r.FormFile("cover_letter")
@@ -1613,20 +1603,18 @@ func (c *PodiumController) SaveCoverLetter(w http.ResponseWriter, r *http.Reques
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	currentDir, err := os.Getwd()
+	uploadPath := core.GetUploadFilepath()
+	coverLetterDir := filepath.Join(uploadPath, "PodiumFiles")
+	err = os.MkdirAll(coverLetterDir, os.ModePerm)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	coverLetterDir := filepath.Join(currentDir, "cover_letters")
-
 	var coverLetterPath string
 	if coverLetterFile != nil {
 		defer coverLetterFile.Close()
-		timestamp := time.Now().Format("20060102150405") 
+		timestamp := time.Now().Format("20060102150405")
 		filename := fmt.Sprintf("%s_%s", timestamp, coverLetterHeader.Filename)
-
 		coverLetterPath = filepath.Join(coverLetterDir, filename)
 		coverLetter, err := os.Create(coverLetterPath)
 		if err != nil {
@@ -1634,7 +1622,6 @@ func (c *PodiumController) SaveCoverLetter(w http.ResponseWriter, r *http.Reques
 			return
 		}
 		defer coverLetter.Close()
-
 		_, err = io.Copy(coverLetter, coverLetterFile)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -1652,6 +1639,7 @@ func (c *PodiumController) SaveCoverLetter(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Cover letter saved successfully"))
 }
+
 
 func (c *PodiumController) saveCoverLetterToDB(measurementID string, patientID string, coverLetterPath string, isReferred bool) error {
 	existingCoverLetter := CoverLetter{}
@@ -1734,13 +1722,11 @@ func (c *PodiumController) GetCoverLetter(w http.ResponseWriter, r *http.Request
     if coverLetter.CoverLetter != "" {
         coverLetterURL = fmt.Sprintf("http://localhost:4001/api/v1/download-cover-letter/%s", filepath.Base(coverLetter.CoverLetter))
     }
-
     response := map[string]interface{}{
         "cover_letter_url": coverLetterURL,
         "is_referred":      coverLetter.IsReferred,
         "measurement_id":   measurementID,
     }
-
     jsonData, err := json.Marshal(response)
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -1755,18 +1741,16 @@ func (c *PodiumController) GetCoverLetter(w http.ResponseWriter, r *http.Request
 func (c *PodiumController) serveCoverLetterHandler(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	filePath := params["filepath"]
-	currentDir, err := os.Getwd()
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-	absFilePath := filepath.Join(currentDir, "cover_letters", filePath)
+	uploadPath := core.GetUploadFilepath()
+	absFilePath := filepath.Join(uploadPath, "PodiumFiles", filePath)
+
 	file, err := os.Open(absFilePath)
 	if err != nil {
 		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
 	defer file.Close()
+
 	contentType := mime.TypeByExtension(filepath.Ext(filePath))
 	if contentType == "" {
 		contentType = "application/octet-stream"
@@ -1774,6 +1758,7 @@ func (c *PodiumController) serveCoverLetterHandler(w http.ResponseWriter, r *htt
 	w.Header().Set("Content-Type", contentType)
 	http.ServeContent(w, r, filePath, time.Now(), file)
 }
+
 //ispl_KTH_03/3/2024
 
 func (c *PodiumController) SavePracticeHandler(w http.ResponseWriter, r *http.Request) {
